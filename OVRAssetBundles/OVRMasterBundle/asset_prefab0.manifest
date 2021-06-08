@@ -1,0 +1,81 @@
+ManifestFileVersion: 0
+CRC: 397513609
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 366eee867c15db58e7bf153d1e47b510
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: bded22f827c2f529ab75f00ef0b09f85
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 64
+  Script: {instanceID: 0}
+- Class: 65
+  Script: {instanceID: 0}
+- Class: 108
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: cb7623a8f0b49cf4dbaa40aea4d4be64, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 54c16b381e28e8d479237771d234dbae, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 03a7614f10832d041bccff167d2a460f, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 73eac66b128fc8749a21623225c34541, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 5cc5c234723e3a54d8dd09b131117743, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 2609c54f376cffc4da1ab9401cc1a36f, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 137
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Low_Poly_Mini_Village/Prefabs/Grass_3.prefab
+- Assets/Low_Poly_Mini_Village/Prefabs/Wc.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestAxe.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestCurve.prefab
+- Assets/BrokenVector/LowPolyTreePack/Prefabs/Tree Type1 05.prefab
+- Assets/Oculus/SampleFramework/Core/Locomotion/TeleportDestination.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestTree_02.prefab
+- Assets/Low_Poly_Mini_Village/Prefabs/Road_sign1.prefab
+- Assets/Oculus/VR/Prefabs/OVRHandPrefab.prefab
+- Assets/Low_Poly_Mini_Village/Prefabs/Water.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestCabin.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestMushroom02.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestRiverCurve.prefab
+- Assets/Low_Poly_Mini_Village/Prefabs/Ground.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestTreeTrunkBench.prefab
+- Assets/Low_Poly_Mini_Village/Prefabs/Grass_1.prefab
+- Assets/Low_Poly_Mini_Village/Prefabs/Wooden_barrel.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestBridge_01.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestCloud.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestStraight.prefab
+- Assets/Poly/Imagine Geometric Pack/Light Sources/light_lamp_stand_1.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestTreeTrunk_01.prefab
+- Assets/Low_Poly_Mini_Village/Prefabs/Rock_4.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestMushroom01.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestFire.prefab
+- Assets/BrokenVector/LowPolyTreePack/Prefabs/Tree Type3 02.prefab
+- Assets/Low_Poly_Mini_Village/Prefabs/Rock_3.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestStart.prefab
+- Assets/BrokenVector/LowPolyTreePack/Prefabs/Tree Type2 02.prefab
+- Assets/Low_Poly_Mini_Village/Prefabs/Rock_2.prefab
+Dependencies:
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_dae0
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_fbx0
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_mat0

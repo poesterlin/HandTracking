@@ -1,0 +1,35 @@
+ManifestFileVersion: 0
+CRC: 2215017451
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 1f592414ab336b957d07cdcd28b3d05b
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 6893d17f7a813c37f4f7b51abc5be221
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 64
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/BrokenVector/LowPolyTreePack/Models/Tree Type2 02.dae
+- Assets/BrokenVector/LowPolyTreePack/Models/Tree Type1 05.dae
+- Assets/BrokenVector/LowPolyTreePack/Models/Tree Type6 01.dae
+- Assets/BrokenVector/LowPolyTreePack/Models/Tree Type3 02.dae
+- Assets/BrokenVector/LowPolyTreePack/Models/Tree Type1 04.dae
+Dependencies: []

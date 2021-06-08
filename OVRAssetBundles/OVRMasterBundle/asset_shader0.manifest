@@ -1,0 +1,17 @@
+ManifestFileVersion: 0
+CRC: 346400030
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 9ff8bb265e972e6a60afe8dab4f69fd9
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 68c985bf88fecc38b460cdb825182138
+HashAppended: 0
+ClassTypes:
+- Class: 48
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Oculus/SampleFramework/Usage/HandsTrainExample/Shaders/ButtonGlow.shader
+Dependencies: []

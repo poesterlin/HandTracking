@@ -1,0 +1,67 @@
+ManifestFileVersion: 0
+CRC: 3840578269
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 7bdf0166d1efd55c4dea02aeeea6824c
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 4a51026d08bf40f7f6eea65537d2ffbc
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 64
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestCabin.fbx
+- Assets/Poly/Imagine Geometric Pack/LowPoly/light_lamp_stand_1.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestBridge_01.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestFire.fbx
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Water.FBX
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Ground.FBX
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Rock_2.FBX
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Road_sign1.FBX
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestStraight.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestRiverStraight.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestCloud.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestBridge_02.fbx
+- Assets/Poly/Imagine Geometric Pack/LowPoly/lamp_stolb_1.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestTreeTrunkBench.fbx
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Wc.FBX
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestEmpty.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestTreeTrunk_01.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestTree_02.fbx
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Rock_3.FBX
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestRiverCurve.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestMushroom01.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestCurve.fbx
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Rock_4.FBX
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Well1.FBX
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestMushroom02.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestStart.fbx
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestLake.fbx
+- Assets/Oculus/SampleFramework/Core/Locomotion/Models/DestinationIndicatorSimple.fbx
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Grass_1.FBX
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestCanoe.fbx
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Grass_3.FBX
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Meshes/ForestAxe.fbx
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Wooden_barrel.FBX
+Dependencies:
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_mat0
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_png0

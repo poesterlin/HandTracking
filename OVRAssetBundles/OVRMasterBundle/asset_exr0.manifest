@@ -1,0 +1,34 @@
+ManifestFileVersion: 0
+CRC: 3489898035
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: e723736d394816e113b6a3eddf808c08
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: e6e651bdddca608c77d51fff2e12d033
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 89
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Scenes/SampleScene/Lightmap-1_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-10_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-6_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-11_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-12_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-9_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-5_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-4_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-3_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-13_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-2_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-7_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-14_comp_light.exr
+- Assets/Scenes/SampleScene/Lightmap-0_comp_light.exr
+- Assets/Scenes/SampleScene/ReflectionProbe-0.exr
+- Assets/Scenes/SampleScene/Lightmap-8_comp_light.exr
+Dependencies: []

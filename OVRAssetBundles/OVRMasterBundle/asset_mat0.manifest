@@ -1,0 +1,40 @@
+ManifestFileVersion: 0
+CRC: 1347235632
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 3581b6462b1cc39fdc0906e2fdac135e
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 939e20ecac0e95a3f7c5cfb3e57acb1d
+HashAppended: 0
+ClassTypes:
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Oculus/VR/Materials/BasicHandMaterial.mat
+- Assets/Low_Poly_Mini_Village/Art/Materials/Grass.mat
+- Assets/BrokenVector/LowPolyTreePack/Materials/Normal.mat
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Particles/Clouds.mat
+- Assets/Low_Poly_Mini_Village/Skyboxes/Sky3.mat
+- Assets/Oculus/SampleFramework/Core/Locomotion/Materials/lambert1.mat
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Materials/Forest_M.mat
+- Assets/Low_Poly_Mini_Village/Art/Materials/1.mat
+- Assets/Low_Poly_Mini_Village/Art/Materials/2.mat
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Materials/Texture.mat
+- Assets/Poly/Imagine Geometric Pack/LowPoly/Materials/Light.mat
+- Assets/Poly/Imagine Geometric Pack/LowPoly/Materials/Metall.mat
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Materials/05 - Default.mat
+- Assets/Low_Poly_Mini_Village/Art/Materials/3.mat
+- Assets/Poly/Imagine Geometric Pack/LowPoly/Materials/Barrel_Wood.mat
+- Assets/Oculus/SampleFramework/Usage/HandsTrainExample/Materials/ControllerBoxGlow.mat
+- Assets/Low_Poly_Mini_Village/Art/Meshes/Materials/Gnd.mat
+Dependencies:
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_jpg0
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_png0
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_shader0
