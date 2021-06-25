@@ -1,39 +1,43 @@
 ManifestFileVersion: 0
-CRC: 750446140
+CRC: 2962655239
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 3c97318b4d4d65a6af9f0146ed63d4f9
+    Hash: 9a7c32ddff962e776a36f807986f20ee
   TypeTreeHash:
     serializedVersion: 2
-    Hash: b0363f7088f9761414f730641bf9a24b
+    Hash: 4df8c69f2c8a6ad9e3cbf82bb83e4dc3
 HashAppended: 0
 ClassTypes:
 - Class: 28
+  Script: {instanceID: 0}
+- Class: 213
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
 - Assets/Oculus/VR/Textures/HandTracking/HandTracking_uvmap_2048.png
 - Assets/Scenes/SampleScene/Lightmap-2_comp_dir.png
 - Assets/Scenes/SampleScene/Lightmap-11_comp_dir.png
-- Assets/Low_Poly_Mini_Village/Art/Textures/Grass.png
 - Assets/Poly/Imagine Geometric Pack/LowPoly/Materials/temp_color.png
+- Assets/Low_Poly_Mini_Village/Art/Textures/Grass.png
 - Assets/Scenes/SampleScene/Lightmap-3_comp_dir.png
 - Assets/Scenes/SampleScene/Lightmap-14_comp_dir.png
 - Assets/Scenes/SampleScene/Lightmap-4_comp_dir.png
 - Assets/Scenes/SampleScene/Lightmap-1_comp_dir.png
-- Assets/Scenes/SampleScene/Lightmap-6_comp_dir.png
 - Assets/Scenes/SampleScene/Lightmap-9_comp_dir.png
+- Assets/Scenes/SampleScene/Lightmap-6_comp_dir.png
 - Assets/Scenes/SampleScene/Lightmap-12_comp_dir.png
 - Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Textures/ForestColors.png
 - Assets/Scenes/SampleScene/Lightmap-8_comp_dir.png
 - Assets/Scenes/SampleScene/Lightmap-13_comp_dir.png
 - Assets/Poly/Imagine Geometric Pack/LowPoly/Materials/temp_color_oc.png
 - Assets/Scenes/SampleScene/Lightmap-5_comp_dir.png
+- Assets/Graphy - Ultimate Stats Monitor/Textures/2x2_Texture.png
 - Assets/Scenes/SampleScene/Lightmap-0_comp_dir.png
 - Assets/Scenes/SampleScene/Lightmap-7_comp_dir.png
 - Assets/Scenes/SampleScene/Lightmap-10_comp_dir.png
 - Assets/BrokenVector/LowPolyTreePack/Textures/Colorsheet Tree Normal.png
 - Assets/Low_Poly_Mini_Village/Art/Textures/Texture.png
 - Assets/Low_Poly_Mini_Village/Art/Textures/Gnd.png
+- Assets/Graphy - Ultimate Stats Monitor/Textures/Rounded_Rect_10px.png
 Dependencies: []

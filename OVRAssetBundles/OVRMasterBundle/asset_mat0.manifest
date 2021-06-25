@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1347235632
+CRC: 3485766777
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 3581b6462b1cc39fdc0906e2fdac135e
+    Hash: e781a8a4f0033b6dd8b6e2f42ab9029e
   TypeTreeHash:
     serializedVersion: 2
     Hash: 939e20ecac0e95a3f7c5cfb3e57acb1d
@@ -24,15 +24,21 @@ Assets:
 - Assets/Low_Poly_Mini_Village/Skyboxes/Sky3.mat
 - Assets/Oculus/SampleFramework/Core/Locomotion/Materials/lambert1.mat
 - Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Materials/Forest_M.mat
+- Assets/Graphy - Ultimate Stats Monitor/Materials/RAM_Allocated_Graph.mat
 - Assets/Low_Poly_Mini_Village/Art/Materials/1.mat
 - Assets/Low_Poly_Mini_Village/Art/Materials/2.mat
 - Assets/Low_Poly_Mini_Village/Art/Meshes/Materials/Texture.mat
 - Assets/Poly/Imagine Geometric Pack/LowPoly/Materials/Light.mat
 - Assets/Poly/Imagine Geometric Pack/LowPoly/Materials/Metall.mat
+- Assets/Graphy - Ultimate Stats Monitor/Materials/RAM_Mono_Graph.mat
+- Assets/Graphy - Ultimate Stats Monitor/Materials/RAM_Reserved_Graph.mat
+- Assets/Graphy - Ultimate Stats Monitor/Materials/Audio_Spectrum_Graph.mat
 - Assets/Low_Poly_Mini_Village/Art/Meshes/Materials/05 - Default.mat
 - Assets/Low_Poly_Mini_Village/Art/Materials/3.mat
 - Assets/Poly/Imagine Geometric Pack/LowPoly/Materials/Barrel_Wood.mat
+- Assets/Graphy - Ultimate Stats Monitor/Materials/FPS_Graph.mat
 - Assets/Oculus/SampleFramework/Usage/HandsTrainExample/Materials/ControllerBoxGlow.mat
+- Assets/Graphy - Ultimate Stats Monitor/Materials/Audio_Spectrum_Highest_Values_Graph.mat
 - Assets/Low_Poly_Mini_Village/Art/Meshes/Materials/Gnd.mat
 Dependencies:
 - C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_jpg0

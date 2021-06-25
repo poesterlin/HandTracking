@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 397513609
+CRC: 605499417
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 366eee867c15db58e7bf153d1e47b510
+    Hash: 9f1e864c3fc53bc89bea77e59bcc4644
   TypeTreeHash:
     serializedVersion: 2
-    Hash: bded22f827c2f529ab75f00ef0b09f85
+    Hash: 4fa5ffc436ce476ee8a7d6a4baf431dd
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -21,61 +21,104 @@ ClassTypes:
   Script: {instanceID: 0}
 - Class: 43
   Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
 - Class: 64
   Script: {instanceID: 0}
 - Class: 65
   Script: {instanceID: 0}
-- Class: 108
-  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: b205584e495e4634aa3a332a78102a19, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 84f7591c01b7f1a4ab82f1a0038491da, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: a9c49f1e95f2dab428b3a0ed56328a1c, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: f74bbf307d92b0d4e81ae60b9eb1e42f, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: cb7623a8f0b49cf4dbaa40aea4d4be64, type: 3}
 - Class: 114
+  Script: {fileID: 11500000, guid: 221dc0b3655ddb749ace6bad55f0159f, type: 3}
+- Class: 114
   Script: {fileID: 11500000, guid: 54c16b381e28e8d479237771d234dbae, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 2e119c7747ac400478c7cfcaea03214e, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: 03a7614f10832d041bccff167d2a460f, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: 73eac66b128fc8749a21623225c34541, type: 3}
 - Class: 114
+  Script: {fileID: 11500000, guid: 28d32ee74b6e6d24ea89d1b477060318, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 2216f4eff6a7a8a43b38b180fdd2fd9e, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 2494656f0dd693144be1306d5551e544, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: f2d6ca19dafe21b4b983441274e7f12a, type: 3}
+- Class: 114
   Script: {fileID: 11500000, guid: 5cc5c234723e3a54d8dd09b131117743, type: 3}
 - Class: 114
+  Script: {fileID: 11500000, guid: 766a588f9a6cb55499c66ea772072e11, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 5c1019d31db77fd468164577146737ad, type: 3}
+- Class: 114
   Script: {fileID: 11500000, guid: 2609c54f376cffc4da1ab9401cc1a36f, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 8c0448d8db852b54480670d291c04f1a, type: 3}
 - Class: 115
   Script: {instanceID: 0}
+- Class: 128
+  Script: {instanceID: 0}
 - Class: 137
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
 - Assets/Low_Poly_Mini_Village/Prefabs/Grass_3.prefab
-- Assets/Low_Poly_Mini_Village/Prefabs/Wc.prefab
-- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestAxe.prefab
 - Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestCurve.prefab
-- Assets/BrokenVector/LowPolyTreePack/Prefabs/Tree Type1 05.prefab
+- Assets/Graphy - Ultimate Stats Monitor/Prefab/Internal/FPS - Module.prefab
 - Assets/Oculus/SampleFramework/Core/Locomotion/TeleportDestination.prefab
 - Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestTree_02.prefab
 - Assets/Low_Poly_Mini_Village/Prefabs/Road_sign1.prefab
 - Assets/Oculus/VR/Prefabs/OVRHandPrefab.prefab
 - Assets/Low_Poly_Mini_Village/Prefabs/Water.prefab
-- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestCabin.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestBridge_02.prefab
+- Assets/BrokenVector/LowPolyTreePack/Prefabs/Tree Type1 04.prefab
 - Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestMushroom02.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestCabin.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestCanoe.prefab
 - Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestRiverCurve.prefab
 - Assets/Low_Poly_Mini_Village/Prefabs/Ground.prefab
 - Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestTreeTrunkBench.prefab
 - Assets/Low_Poly_Mini_Village/Prefabs/Grass_1.prefab
 - Assets/Low_Poly_Mini_Village/Prefabs/Wooden_barrel.prefab
+- Assets/Graphy - Ultimate Stats Monitor/Prefab/Internal/AUDIO - Module.prefab
 - Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestBridge_01.prefab
 - Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestCloud.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestLake.prefab
 - Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestStraight.prefab
-- Assets/Poly/Imagine Geometric Pack/Light Sources/light_lamp_stand_1.prefab
-- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestTreeTrunk_01.prefab
-- Assets/Low_Poly_Mini_Village/Prefabs/Rock_4.prefab
-- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestMushroom01.prefab
-- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestFire.prefab
+- Assets/Graphy - Ultimate Stats Monitor/Prefab/Internal/ADVANCED - Module.prefab
+- Assets/Graphy - Ultimate Stats Monitor/Prefab/Internal/RAM - Module.prefab
 - Assets/BrokenVector/LowPolyTreePack/Prefabs/Tree Type3 02.prefab
+- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestMushroom01.prefab
+- Assets/Low_Poly_Mini_Village/Prefabs/Rock_4.prefab
 - Assets/Low_Poly_Mini_Village/Prefabs/Rock_3.prefab
-- Assets/FreeDimensionForge/LowPolyEnvironmentsPack/Art/ForestEnvironmentPack/Prefabs/ForestStart.prefab
 - Assets/BrokenVector/LowPolyTreePack/Prefabs/Tree Type2 02.prefab
-- Assets/Low_Poly_Mini_Village/Prefabs/Rock_2.prefab
 Dependencies:
 - C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_dae0
 - C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_fbx0
 - C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_mat0
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_png0
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_shader0
+- C:/Users/phili/Documents/Github/MA-Project/HandTracking/OVRAssetBundles/OVRMasterBundle/asset_ttf0

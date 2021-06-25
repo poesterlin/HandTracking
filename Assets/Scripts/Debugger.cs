@@ -29,7 +29,7 @@ public class Debugger : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(OVRInput.GetDown(OVRInput.Button.Two) ||OVRInput.GetDown(OVRInput.Button.Start))   {
+        if(OVRInput.GetDown(OVRInput.Button.Two))   {
             if(inMenu){
                 // DebugBuilder.instance.Hide();
                 GraphyManager.Instance.Disable();

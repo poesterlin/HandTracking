@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 346400030
+CRC: 308656602
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 9ff8bb265e972e6a60afe8dab4f69fd9
+    Hash: 5c4c9a2ad0ad162cb9eb7b40db63eaf3
   TypeTreeHash:
     serializedVersion: 2
     Hash: 68c985bf88fecc38b460cdb825182138
@@ -13,5 +13,7 @@ ClassTypes:
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
+- Assets/Graphy - Ultimate Stats Monitor/Shaders/GraphStandard.shader
 - Assets/Oculus/SampleFramework/Usage/HandsTrainExample/Shaders/ButtonGlow.shader
+- Assets/Graphy - Ultimate Stats Monitor/Shaders/GraphMobile.shader
 Dependencies: []
