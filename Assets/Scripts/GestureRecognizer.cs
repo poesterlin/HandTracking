@@ -8,8 +8,9 @@ using UnityEngine.Events;
 [Serializable]
 public enum GestureType
 {
-    FingerGesture = 0,
-    TriangleGesture = 1,
+    Default,
+    FingerGesture,
+    TriangleGesture,
 }
 
 
@@ -28,7 +29,7 @@ public class Gesture
     public UnityEvent onRecognized;
     public bool ignoreLeft = false;
     public bool ignoreRight = false;
-    public GestureType type = GestureType.FingerGesture;
+    public GestureType type = GestureType.Default;
 
     [HideInInspector]
     public float time = 0.0f;
@@ -150,6 +151,7 @@ public class GestureRecognizer : MonoBehaviour
 
         if(!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence){
             tpProv.abortTeleport();
+            previousGestureDetected = defaultGesture;
             return;
         }
 
@@ -166,11 +168,11 @@ public class GestureRecognizer : MonoBehaviour
                 tpProv.abortTeleport();
                 tpProv.selectMethod(gesture.type);
 
-                Bone refBoneIndex = fingerBones["7-right"];
-                tpProv.initTeleport(skeletonRight, refBoneIndex);
+                tpProv.initTeleport(new TrackingInfo(skeletonRight, skeletonLeft, fingerBones, Hand.right));
             }
         } else {
             tpProv.abortTeleport();
+            previousGestureDetected = defaultGesture;
         }
 
         if(/* debugMode && */ OVRInput.GetDown(OVRInput.Button.Start)){

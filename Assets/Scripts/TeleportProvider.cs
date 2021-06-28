@@ -33,12 +33,19 @@ public abstract class Teleporter {
         updateState("aborting");
     }
 
-    public virtual void init(OVRSkeleton hand, Bone finger){
+    public virtual void init(TrackingInfo track){
         updateState("ready");
     }
 
     public virtual void confirmTeleport(){
         onTeleport.Invoke();
+    }
+
+    protected void debugPosition(Vector3 pos){
+        GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        obj.transform.position = pos;
+        obj.transform.localScale = 0.05f * Vector3.one;
+        obj.GetComponent<Collider>().enabled = false;
     }
 
     protected void updateState(string newState){
@@ -48,54 +55,12 @@ public abstract class Teleporter {
     }
 
     public virtual void update(){
-        QuestDebug.Instance.Log("base");
+        target = Vector3.zero;
+        // updateState("no point");
+        line.enabled = false;
+        reticle.deactivate();
     }
 }
-
-
-public class FingerTeleport: Teleporter {
-    private Bone anchorF;
-    private OVRSkeleton anchorH;
-
-    public FingerTeleport(float distance, LineRenderer line, GameObject targetReticle): base(distance, line, targetReticle) {
-        QuestDebug.Instance.Log("creating new FingerTeleporter");
-    }
-
-    public override void init(OVRSkeleton hand, Bone finger){
-        anchorF = finger;
-        anchorH = hand;
-        base.init(hand, finger);
-    }
-
-    public override void abort(){
-        base.abort();
-        anchorF = null;
-        anchorH = null;
-    }
-
-    public override void update(){
-        RaycastHit hit;
-        Vector3 start = anchorH.transform.position;
-        if (Physics.Raycast(start, anchorF.Finger.Transform.TransformDirection(Vector3.right), out hit, maxDistance /*, layerMask */)) {
-            target = hit.point;
-            updateState("avaliable");
-
-            line.SetPosition(0, start);
-            line.SetPosition(1, target);
-
-            reticle.activate();
-            reticle.transform.position = target;    
-            line.enabled = true;
-        } else {
-            target = Vector3.zero;
-            updateState("no point");
-            line.enabled = false;
-            reticle.deactivate();
-        }
-    }
-
-}
-
 
 public class TeleportProvider : MonoBehaviour
 {
@@ -114,13 +79,13 @@ public class TeleportProvider : MonoBehaviour
        gesture switch
         {
             GestureType.FingerGesture => new FingerTeleport(distance, line, reticle),
-            GestureType.TriangleGesture => new FingerTeleport(distance, line, reticle),
+            GestureType.TriangleGesture => new TriangleTeleport(distance, line, reticle),
             _ => null,
         };
 
-    public void initTeleport(OVRSkeleton hand, Bone finger){
+    public void initTeleport(TrackingInfo track){
         if(method != null){
-            method.init(hand, finger);
+            method.init(track);
             QuestDebug.Instance.Log("initiating teleport");
         }
 
