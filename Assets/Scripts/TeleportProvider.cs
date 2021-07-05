@@ -5,17 +5,20 @@ using UnityEngine.Events;
 
 
 public abstract class Teleporter {
-    public string state { get { return _state; } }
-    private string _state = "";
+    public TransporterState state { get { return _state; } }
+    private TransporterState _state = TransporterState.none;
 
     public UnityEvent onSateChange = new UnityEvent();
     public UnityEvent onTeleport = new UnityEvent();
 
     protected LineRenderer line;
     public Vector3 target;
+    protected GameObject reticleInstance;
     protected Reticle reticle;
     protected int layerMask = 1 << 7; 
     protected float maxDistance;
+    protected int index = 0;
+    protected int maxIndex = 0;
 
 
     public Teleporter(float distance, LineRenderer lineRenderer, GameObject targetReticle): base(){
@@ -23,18 +26,18 @@ public abstract class Teleporter {
         line = lineRenderer;
         line.enabled = false;
 
-        var reticleInstance = Object.Instantiate(targetReticle, Vector3.zero, Quaternion.identity);
+        reticleInstance = Object.Instantiate(targetReticle, Vector3.zero, Quaternion.identity);
         reticle = reticleInstance.GetComponent<Reticle>();
         reticle.deactivate();
     }
 
     public virtual void abort(){
-        Object.Destroy(reticle);
-        updateState("aborting");
+        Object.Destroy(reticleInstance);
+        updateState(TransporterState.aborted);
     }
 
     public virtual void init(TrackingInfo track){
-        updateState("ready");
+        updateState(TransporterState.ready);
     }
 
     public virtual void confirmTeleport(){
@@ -48,7 +51,7 @@ public abstract class Teleporter {
         obj.GetComponent<Collider>().enabled = false;
     }
 
-    protected void updateState(string newState){
+    protected void updateState(TransporterState newState){
         _state = newState;
         onSateChange.Invoke();
         QuestDebug.Instance.Log("state: " + newState);
@@ -60,6 +63,13 @@ public abstract class Teleporter {
         line.enabled = false;
         reticle.deactivate();
     }
+
+    public bool hasIndex(int n) => n <= maxIndex && n > index;
+
+    public void setIndex(int n){
+        index = n;
+        QuestDebug.Instance.Log("new index: " + index);
+    }
 }
 
 public class TeleportProvider : MonoBehaviour
@@ -67,11 +77,15 @@ public class TeleportProvider : MonoBehaviour
     private Teleporter method;
     private GameObject target;
     public GameObject reticle;
+    public GameObject portal;
     public OVRPlayerController player;
     public LineRenderer line;
     public float distance;
 
     public void selectMethod(GestureType gesture){
+        if(method != null){
+            abortTeleport();
+        }
         method = getType(gesture);
     }
 
@@ -80,6 +94,7 @@ public class TeleportProvider : MonoBehaviour
         {
             GestureType.FingerGesture => new FingerTeleport(distance, line, reticle),
             GestureType.TriangleGesture => new TriangleTeleport(distance, line, reticle),
+            GestureType.PortalGesture => new PortalTeleport(distance, line, reticle, portal),
             _ => null,
         };
 
@@ -89,11 +104,11 @@ public class TeleportProvider : MonoBehaviour
             QuestDebug.Instance.Log("initiating teleport");
         }
 
-        Invoke("confirmTeleport", 2);
+        // Invoke("confirmTeleport", 2);
     }
 
     public void confirmTeleport(){
-        if(method != null && method.state == "avaliable"){
+        if(method != null && method.state == TransporterState.avaliable){
             player.enabled = false;
             player.transform.position = method.target + new Vector3(0, player.transform.position.y, 0);
             player.enabled = true;
@@ -101,8 +116,11 @@ public class TeleportProvider : MonoBehaviour
         Invoke("confirmTeleport", 2);
     }
 
-    public void updateTeleport(){
+    public void updateTeleport(int index){
         if(method != null){
+            if(method.hasIndex(index)){
+                method.setIndex(index);
+            }
             method.update();
         }
     }

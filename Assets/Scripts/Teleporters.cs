@@ -9,17 +9,26 @@ public enum Hand {
     right,
 }
 
+public enum TransporterState{
+    none,
+    ready,
+    avaliable, 
+    aborted,
+}
+
 public class TrackingInfo {
     OVRSkeleton rightHand;
     OVRSkeleton leftHand;
     SortedList<string, Bone> fingerBones;
     Hand recognizedHand;
+    Camera headset;
     
-    public TrackingInfo(OVRSkeleton right, OVRSkeleton left, SortedList<string, Bone> bones, Hand hand){
+    public TrackingInfo(Camera centerCamera, OVRSkeleton right, OVRSkeleton left, SortedList<string, Bone> bones, Hand hand){
         rightHand = right;
         leftHand = left;
         fingerBones = bones;
         recognizedHand = hand;
+        headset = centerCamera;
     }
 
     public Bone getFinger(int id, Hand hand){
@@ -35,6 +44,10 @@ public class TrackingInfo {
             return getRightHand();
         }
         return getLeftHand();
+    }
+
+    public Camera getHeadsetCamera(){
+        return headset;
     }
 
     public OVRSkeleton getRightHand() => rightHand;
@@ -66,7 +79,7 @@ public class FingerTeleport: Teleporter {
 
         if (Physics.Raycast(start, anchorF.Finger.Transform.TransformDirection(Vector3.right), out hit, maxDistance /*, layerMask */)) {
             target = hit.point;
-            updateState("avaliable");
+            updateState(TransporterState.avaliable);
 
             line.SetPosition(0, start);
             line.SetPosition(1, target);
@@ -83,7 +96,7 @@ public class FingerTeleport: Teleporter {
 public class TriangleTeleport: Teleporter {
     TrackingInfo track;
 
-    public TriangleTeleport(float distance, LineRenderer line, GameObject targetReticle): base(distance, line, targetReticle) { }
+    public TriangleTeleport(float distance, LineRenderer line, GameObject targetReticle): base(distance, line, targetReticle) {}
 
     public override void init(TrackingInfo trackInfo){
         track = trackInfo;
@@ -115,7 +128,7 @@ public class TriangleTeleport: Teleporter {
         RaycastHit hit;
         if (Physics.Raycast(origin, direction, out hit, maxDistance /*, layerMask */)) {
             target = hit.point;
-            updateState("avaliable");
+            updateState(TransporterState.avaliable);
 
             line.SetPosition(0, origin);
             line.SetPosition(1, target);
@@ -125,6 +138,57 @@ public class TriangleTeleport: Teleporter {
             line.enabled = true;
         } else {
            base.update();
+        }
+    }
+}
+
+public class PortalTeleport: Teleporter {
+    TrackingInfo track;
+    GameObject portalInstance;
+    PortalManager portalPrefab;
+
+    public PortalTeleport(float distance, LineRenderer line, GameObject targetReticle, GameObject portal): base(distance, line, targetReticle) {
+        portalInstance = UnityEngine.Object.Instantiate(portal, Vector3.zero, Quaternion.identity);
+        portalPrefab = portalInstance.GetComponent<PortalManager>();
+        portalPrefab.onTeleportEnter.AddListener(portalActivate);
+        maxIndex = 2;
+    }
+
+    public override void init(TrackingInfo trackInfo){
+        track = trackInfo;
+        base.init(trackInfo);
+    }
+
+    public override void abort(){
+        portalPrefab.onTeleportEnter.RemoveListener(portalActivate);
+        portalPrefab.destroyPortal();
+        base.abort();
+    }
+
+    public void portalActivate(){
+        if(index == 2){
+            updateState(TransporterState.avaliable);
+            QuestDebug.Instance.Log("portal hit");
+        }
+    }
+
+    public override void update(){
+        Camera head = track.getHeadsetCamera();
+        // debugPosition(head.transform.position + Vector3.forward * 1f);
+
+        // RaycastHit HitInfo;
+        Ray RayOrigin = head.ViewportPointToRay(new Vector3(0,0,0));
+        RaycastHit hit;
+        if (Physics.Raycast(RayOrigin, out hit, maxDistance /*, layerMask */)) {
+            target = hit.point + Vector3.back * 2f + Vector3.up * 1.5f;
+            if(!portalPrefab.active){
+                portalPrefab.initPortal(target);
+            }else{
+                // portalInstance.transform.position = target;
+            }
+        } else {
+            portalPrefab.destroyPortal();
+            base.update();
         }
     }
 }
