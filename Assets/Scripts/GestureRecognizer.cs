@@ -53,7 +53,8 @@ public class Gesture
         return JsonUtility.FromJson<GestureList>(jsonString);
     }
 
-    public Bone getReference(){
+    public Bone getReference()
+    {
         return fingerData.Find(finger => finger.id == OVRSkeleton.BoneId.Hand_Index2 && !finger.isLeftHand);
     }
 }
@@ -91,11 +92,13 @@ public class Bone
         return Hand.transform.InverseTransformPoint(Finger.Transform.position);
     }
 
-    public Vector3 getAbsolutePosition(){
+    public Vector3 getAbsolutePosition()
+    {
         return Finger.Transform.position;
     }
 
-    public Bone save(){
+    public Bone save()
+    {
         position = getRelativePosition();
         return this;
     }
@@ -113,8 +116,8 @@ public class GestureRecognizer : MonoBehaviour
 
     private SortedList<string, Bone> fingerBones;
 
-    private float threshold = 0.03f;
-    private float delay = 0.3f;
+    public float threshold = 0.03f;
+    public float delay = 0.3f;
 
     public TeleportProvider tpProv;
 
@@ -125,11 +128,12 @@ public class GestureRecognizer : MonoBehaviour
 
     private NetworkAdapter network;
 
-    private SortedList<string, Bone> getBones(SortedList<string, Bone> list, OVRSkeleton Hand, bool isLeft){
-        
+    private SortedList<string, Bone> getBones(SortedList<string, Bone> list, OVRSkeleton Hand, bool isLeft)
+    {
+
         foreach (var bone in Hand.Bones)
         {
-            list.Add(((int)bone.Id) + "-" + (isLeft ? "left" : "right"),  new Bone(Hand, bone, isLeft));
+            list.Add(((int)bone.Id) + "-" + (isLeft ? "left" : "right"), new Bone(Hand, bone, isLeft));
         }
 
         return list;
@@ -148,47 +152,61 @@ public class GestureRecognizer : MonoBehaviour
 
     private void Update()
     {
-        if(SavedGestures == null){
+        if (SavedGestures == null)
+        {
             QuestDebug.Instance.Log("no gestures");
             return;
         }
 
-        if(!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence){
-            tpProv.abortTeleport();
-            previousGestureDetected = defaultGesture;
+        // if(!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence){
+        //     tpProv.abortTeleport();
+        //     previousGestureDetected = defaultGesture;
+        //     return;
+        // }
+
+        if (/* debugMode && */ OVRInput.GetDown(OVRInput.Button.Start))
+        {
+            QuestDebug.Instance.Log("make a gesture to save in 2 seconds");
+            Invoke("SaveAsGesture", 2);
             return;
         }
 
+        Debug.Log("recognize starting");
         Gesture gesture = Recognize();
-        bool hasRecognized = gesture != null && !gesture.Equals(defaultGesture);
-        if(hasRecognized){
-            Debug.Log("types: prev " + previousGestureDetected.type + "  ----  next " + gesture.type);
-            if(previousGestureDetected.type == gesture.type){
-                if(previousGestureDetected.gestureIndex != gesture.gestureIndex){
-                   Debug.Log("update index: " + gesture.gestureIndex);
-                }
-                tpProv.updateTeleport(gesture.gestureIndex);
-            } else {
-                previousGestureDetected.time = 0f;
-                QuestDebug.Instance.Log("found " + gesture.name + " of type " + gesture.type);
-
-                tpProv.abortTeleport();
-                tpProv.selectMethod(gesture.type);
-                tpProv.initTeleport(new TrackingInfo(CenterEye, skeletonRight, skeletonLeft, fingerBones, Hand.right));
-            }
-            previousGestureDetected = gesture;
-        } else {
+        Debug.Log("recognize done");
+        bool ignore = gesture == null || gesture.Equals(defaultGesture);
+        if (ignore)
+        {
             // only abort if the gesture is detected
-            if(gesture.Equals(defaultGesture)){
+            if (gesture.Equals(defaultGesture))
+            {
                 tpProv.abortTeleport();
                 previousGestureDetected = defaultGesture;
             }
+            return;
         }
 
-        if(/* debugMode && */ OVRInput.GetDown(OVRInput.Button.Start)){
-            QuestDebug.Instance.Log("make a gesture to save in 2 seconds");
-            Invoke("SaveAsGesture", 2);
+        Debug.Log("types: prev " + previousGestureDetected.type + "  ----  next " + gesture.type);
+        if (previousGestureDetected.type == gesture.type)
+        {
+            if (previousGestureDetected.gestureIndex != gesture.gestureIndex)
+            {
+                QuestDebug.Instance.Log("update index: " + gesture.gestureIndex);
+            }
+            tpProv.updateTeleport(gesture.gestureIndex);
         }
+        else
+        {
+            previousGestureDetected.time = 0f;
+            QuestDebug.Instance.Log("found " + gesture.name + " of type " + gesture.type);
+
+            tpProv.abortTeleport();
+            tpProv.selectMethod(gesture.type);
+            tpProv.initTeleport(new TrackingInfo(CenterEye, skeletonRight, skeletonLeft, fingerBones, Hand.right));
+        }
+        previousGestureDetected = gesture;
+
+
     }
 
     public void SaveAsGesture()
@@ -205,87 +223,110 @@ public class GestureRecognizer : MonoBehaviour
 
         StartCoroutine(network.Post(g.ToJson()));
         QuestDebug.Instance.Log("new gesture saved");
+        Invoke("reload", 2);
     }
 
-    private Gesture Recognize(){
-        float BONUS_DISTANCE = 1f;
-        float BONUS_THRESHOLD = 1f;
+    private void reload()
+    {
+        StartCoroutine(network.Get(this));
+        QuestDebug.Instance.Log("reloaded");
+    }
+
+    private Gesture Recognize()
+    {
+        float BONUS_DISTANCE = 0.8f;
+        float BONUS_THRESHOLD = 1.2f;
         float minSumDistances = Mathf.Infinity;
         Gesture currentGesture = defaultGesture;
 
         // test gestures 
-        foreach(var gesture in SavedGestures){
+        foreach (var gesture in SavedGestures)
+        {
             bool couldBeNext = false;
 
             bool sameType = gesture.type == previousGestureDetected.type;
-            if(sameType && gesture.gestureIndex > previousGestureDetected.gestureIndex){
+            if (sameType && gesture.gestureIndex > previousGestureDetected.gestureIndex)
+            {
                 couldBeNext = true;
-            } else {
+            }
+            else
+            {
                 // the gesture is not the first of its type and different to the current
-                if(gesture.gestureIndex != 0){
-                    continue;
-                }
+                // if(gesture.gestureIndex != 0){
+                //     continue;
+                // }
             }
 
             float dist = distanceBetweenGestures(gesture, couldBeNext ? threshold * BONUS_THRESHOLD : threshold);
+
+            dist = couldBeNext ? dist * BONUS_DISTANCE : dist;
+
             var keepGesture = dist > 0 && dist < Mathf.Infinity;
 
-            if(dist < minSumDistances && keepGesture){
-                minSumDistances = couldBeNext ? dist * BONUS_DISTANCE : dist;
+            if (dist < minSumDistances && keepGesture)
+            {
+                minSumDistances = dist;
                 currentGesture = gesture;
             }
         }
 
         Debug.Log("detected: " + currentGesture.name);
-        if(currentGesture.type == previousGestureDetected.type && currentGesture.type != GestureType.Default){
+        if (currentGesture.type == previousGestureDetected.type && currentGesture.type != GestureType.Default)
+        {
             Debug.Log("same type");
             return currentGesture;
         }
 
         // set time delay
         currentGesture.time += Time.deltaTime;
+        Debug.Log("time: " + currentGesture.time);
 
-        float timeDelay = currentGesture.type == GestureType.Default ? 3f : delay;
+        float timeDelay = currentGesture.type == GestureType.Default ? 2f : delay;
         bool needsTime = currentGesture.time < timeDelay;
-        if (needsTime){
+        if (needsTime)
+        {
             Debug.Log("needs time");
-            currentGesture = null;
+            return null;
         }
-        
+
         Debug.Log("first recognize");
         return currentGesture;
     }
 
-    private float distanceBetweenGestures(Gesture gesture, float maxFingerDist){
+    private float distanceBetweenGestures(Gesture gesture, float maxFingerDist)
+    {
         float sumDistances = 0;
         for (int i = 0; i < fingerBones.Count; i++)
-        {   
+        {
             var storedFinger = gesture.fingerData[i];
             string key = ((int)storedFinger.id) + "-" + (storedFinger.isLeftHand ? "left" : "right");
 
             var finger = fingerBones[key];
 
-            if(gesture.ignoreLeft && finger.isLeftHand){
+            if (gesture.ignoreLeft && finger.isLeftHand)
+            {
                 continue;
             }
 
-            if(gesture.ignoreRight && !finger.isLeftHand){
+            if (gesture.ignoreRight && !finger.isLeftHand)
+            {
                 continue;
             }
 
             Vector3 currentData = finger.getRelativePosition();
             float distance = Vector3.Distance(currentData, storedFinger.position);
-            if(distance > maxFingerDist){
+            if (distance > maxFingerDist)
+            {
                 gesture.time = 0f;
                 Debug.Log("--- abort gesture: " + gesture.name);
                 Debug.Log("distance above threshold (max " + maxFingerDist + ") :" + distance + " for finger " + storedFinger.id + (storedFinger.isLeftHand ? " (left)" : " (right)"));
-               return Mathf.Infinity;
+                return Mathf.Infinity;
             }
 
             sumDistances += distance;
         }
 
-        
+
         Debug.Log("gesture: " + gesture.name + " dist: " + sumDistances);
         return sumDistances;
     }

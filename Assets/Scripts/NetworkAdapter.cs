@@ -6,10 +6,12 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 
-public class NetworkAdapter {
+public class NetworkAdapter
+{
     string ip;
 
-    public NetworkAdapter(string address){
+    public NetworkAdapter(string address)
+    {
         ip = address;
     }
 
@@ -17,26 +19,28 @@ public class NetworkAdapter {
     {
         var request = new UnityWebRequest(ip + "/gesture", "POST");
         byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
-        request.uploadHandler = (UploadHandler) new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = (DownloadHandler) new DownloadHandlerBuffer();
+        request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
         yield return request.SendWebRequest();
         Debug.Log("Status Code: " + request.responseCode);
     }
 
-    public IEnumerator Get(GestureRecognizer inst) {
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture")) {
+    public IEnumerator Get(GestureRecognizer inst)
+    {
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture"))
+        {
             // Request and wait for the desired page.
             yield return webRequest.SendWebRequest();
- 
-            if (webRequest.result == UnityWebRequest.Result.ConnectionError) {
+
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
                 Debug.Log("Error: " + webRequest.error);
             }
 
             GestureList list = Gesture.CreateFromJSON(webRequest.downloadHandler.text);
             inst.SavedGestures = new List<Gesture>(list.Gestures);
             QuestDebug.Instance.Log("downloaded " + inst.SavedGestures.Count + " gestures");
-            
         }
     }
 }
