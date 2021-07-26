@@ -49,7 +49,7 @@ public abstract class Teleporter
         onTeleport.Invoke();
     }
 
-    protected void debugPosition(Vector3 pos)
+    public void debugPosition(Vector3 pos)
     {
         GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         obj.transform.position = pos;
@@ -84,10 +84,10 @@ public abstract class Teleporter
 public class TeleportProvider : MonoBehaviour
 {
     private Teleporter method;
-    private GameObject target;
     public GameObject reticle;
     public GameObject portal;
     public OVRPlayerController player;
+    public CharacterController character;
     public LineRenderer line;
     public float distance;
     private bool teleportBlock;
@@ -124,8 +124,9 @@ public class TeleportProvider : MonoBehaviour
         if (method != null && method.state == TransporterState.avaliable)
         {
             player.enabled = false;
+            character.enabled = false;
             teleportBlock = true;
-            Invoke("confirmTeleport", 0.5f);
+            Invoke("confirmTeleport", 1f);
         }
     }
 
@@ -133,9 +134,12 @@ public class TeleportProvider : MonoBehaviour
     {
         if (method != null && method.state == TransporterState.avaliable && !teleportBlock)
         {
-            player.transform.position = new Vector3(method.target.x, player.transform.position.y, method.target.z);
+            player.transform.position = new Vector3(method.target.x, character.height / 2.0f, method.target.z);
+            player.Teleported = true;
             player.enabled = true;
-            abortTeleport();
+            
+            character.enabled = true;
+            method.setIndex(0);
         }
         teleportBlock = false;
     }

@@ -107,6 +107,8 @@ public class FingerTeleport : Teleporter
             if (index == 1)
             {
                 updateState(TransporterState.avaliable);
+            }else{
+                updateState(TransporterState.ready);
             }
         }
         else

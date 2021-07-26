@@ -6443,6 +6443,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0950df82e7936c84983497630bde5b54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!143 &223974231 stripped
+CharacterController:
+  m_CorrespondingSourceObject: {fileID: 14300000, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
+  m_PrefabInstance: {fileID: 1759657680}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &266879473
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8327,6 +8332,7 @@ MonoBehaviour:
   reticle: {fileID: 7005332186328663670, guid: 5f46b5ebeea9cc14cb1996f1c781fb92, type: 3}
   portal: {fileID: 3720422464223563763, guid: dee96cc2999354e41bbe6864642b7e68, type: 3}
   player: {fileID: 223974230}
+  character: {fileID: 223974231}
   line: {fileID: 574222616}
   distance: 8
 --- !u!4 &574222618
@@ -24931,7 +24937,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400006, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -11.95
+      value: -11.79
       objectReference: {fileID: 0}
     - target: {fileID: 400006, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
       propertyPath: m_LocalPosition.y
@@ -24975,6 +24981,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 11493974, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
       propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 14300000, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
+      propertyPath: m_MinMoveDistance
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114814064252544740, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
