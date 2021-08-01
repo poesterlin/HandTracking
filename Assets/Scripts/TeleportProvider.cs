@@ -34,6 +34,7 @@ public abstract class Teleporter
 
     public virtual void abort()
     {
+        reset();
         Object.Destroy(reticleInstance);
         updateState(TransporterState.aborted);
     }
@@ -68,10 +69,7 @@ public abstract class Teleporter
 
     public virtual void update()
     {
-        target = Vector3.zero;
-        // updateState("no point");
-        line.enabled = false;
-        reticle.deactivate();
+        reset();
     }
 
     public bool hasIndex(int n) => n <= maxIndex && n > index;
@@ -85,8 +83,10 @@ public abstract class Teleporter
     internal void reset()
     {
         updateState(TransporterState.ready);
-        target = Vector3.zero;
         setIndex(0);
+        target = Vector3.zero;
+        line.enabled = false;
+        reticle.deactivate();
     }
 }
 
@@ -127,7 +127,7 @@ public class TeleportProvider : MonoBehaviour
        {
            GestureType.FingerGesture => new FingerTeleport(distance, line, reticle),
            GestureType.PalmGesture => new PalmTeleport(distance, line, reticle),
-           GestureType.PortalGesture => new PortalTeleport(distance, line, reticle, portal),
+           GestureType.TriangleGesture => new TriangleTeleport(distance, line, reticle),
            _ => null,
        };
 

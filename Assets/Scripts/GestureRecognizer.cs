@@ -11,7 +11,7 @@ public enum GestureType
     Default,
     FingerGesture,
     PalmGesture,
-    PortalGesture,
+    TriangleGesture,
 }
 
 
@@ -300,6 +300,7 @@ public class GestureRecognizer : MonoBehaviour
 
     private float distanceBetweenGestures(Gesture gesture, float maxFingerDist)
     {
+        float ignoredFingerPenalty = 0.03f;
         float sumDistances = 0;
         for (int i = 0; i < fingerBones.Count; i++)
         {
@@ -308,13 +309,10 @@ public class GestureRecognizer : MonoBehaviour
 
             var finger = fingerBones[key];
 
-            if (gesture.ignoreLeft && finger.isLeftHand)
+            // is finger ignored
+            if ((gesture.ignoreLeft && finger.isLeftHand) || (gesture.ignoreRight && !finger.isLeftHand))
             {
-                continue;
-            }
-
-            if (gesture.ignoreRight && !finger.isLeftHand)
-            {
+                sumDistances += ignoredFingerPenalty;
                 continue;
             }
 
