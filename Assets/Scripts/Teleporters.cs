@@ -75,7 +75,7 @@ public class FingerTeleport : Teleporter
 
     public override void init(TrackingInfo track)
     {
-        anchorF = track.getFinger(7);
+        anchorF = track.getFinger(8);
         anchorH = track.getCurrentHand();
         base.init(track);
     }
@@ -91,9 +91,8 @@ public class FingerTeleport : Teleporter
     {
         RaycastHit hit;
         Vector3 start = anchorH.transform.position;
-        // debugPosition(start);
 
-        if (Physics.Raycast(start, anchorF.Finger.Transform.TransformDirection(Vector3.right), out hit, maxDistance /*, layerMask */))
+        if (Physics.Raycast(start, anchorF.Finger.Transform.TransformDirection(Vector3.right), out hit, maxDistance, layerMask))
         {
             target = hit.point;
 
@@ -107,7 +106,9 @@ public class FingerTeleport : Teleporter
             if (index == 1)
             {
                 updateState(TransporterState.avaliable);
-            }else{
+            }
+            else
+            {
                 updateState(TransporterState.ready);
             }
         }
@@ -118,11 +119,14 @@ public class FingerTeleport : Teleporter
     }
 }
 
-public class TriangleTeleport : Teleporter
+public class PalmTeleport : Teleporter
 {
     TrackingInfo track;
 
-    public TriangleTeleport(float distance, LineRenderer line, GameObject targetReticle) : base(distance, line, targetReticle) { }
+    public PalmTeleport(float distance, LineRenderer line, GameObject targetReticle) : base(distance, line, targetReticle)
+    {
+        maxIndex = 1;
+    }
 
     public override void init(TrackingInfo trackInfo)
     {
@@ -137,44 +141,83 @@ public class TriangleTeleport : Teleporter
 
     private Plane updatePlane(Hand hand)
     {
-        Vector3 index = pos(track.getFinger(20, hand));
-        Vector3 thumb = pos(track.getFinger(19, hand));
-        Vector3 handBase = pos(track.getFinger(3, hand));
-        return new Plane(index, thumb, handBase);
+        Vector3 indexF = pos(track.getFinger(20, hand));
+        Vector3 handBase = pos(track.getFinger(1, hand));
+        Vector3 ringF = pos(track.getFinger(23, hand));
+        return new Plane(indexF, handBase, ringF);
     }
 
     private Vector3 pos(Bone bone)
     {
-        return bone.Finger.Transform.TransformDirection(Vector3.right);
+        return bone.getTransform().position;
     }
 
     public override void update()
     {
-        Plane pL = updatePlane(Hand.left);
         Plane pR = updatePlane(Hand.right);
+        Vector3 start = pos(track.getFinger(9));
 
-        Vector3 direction = Vector3.Lerp(pL.normal, pR.normal, 0.5f);
-        Vector3 origin = Vector3.Lerp(track.getRightHand().transform.position, track.getLeftHand().transform.position, 0.5f);
-
-        RaycastHit hit;
-        if (Physics.Raycast(origin, direction, out hit, maxDistance /*, layerMask */))
+        if (index == 0)
         {
-            target = hit.point;
+            RaycastHit hit;
+            if (Physics.Raycast(start, pR.normal, out hit, maxDistance, layerMask))
+            {
+                target = hit.point;
+
+                line.enabled = true;
+                line.SetPosition(0, start);
+                line.SetPosition(1, target);
+
+                reticle.activate();
+                reticle.transform.position = target;
+            }
+            else
+            {
+                base.update();
+            }
+            updateState(TransporterState.ready);
+            return;
+        }
+
+
+        if (index == 1 && target != Vector3.zero)
+        {
             updateState(TransporterState.avaliable);
-
-            line.enabled = true;
-            line.SetPosition(0, origin);
-            line.SetPosition(1, target);
-
-            reticle.activate();
-            reticle.transform.position = target;
         }
-        else
-        {
-            base.update();
-        }
+
     }
 }
+
+// public class TestTeleport : Teleporter
+// {
+//     private Vector3[] positions = { new Vector3(-3f, 0f, 3f), new Vector3(-3f, 0f, -7f), new Vector3(6f, 0f, -13f), new Vector3(-27f, 0f, -13f) };
+
+//     public TestTeleport(float distance, LineRenderer line, GameObject targetReticle) : base(distance, line, targetReticle)
+//     {
+//         maxIndex = positions.Length;
+//     }
+
+//     public override void init(TrackingInfo trackInfo)
+//     {
+//         base.init(trackInfo);
+//     }
+
+//     public override void abort()
+//     {
+//         base.abort();
+//     }
+
+//     protected override void onSetIndex()
+//     {
+//         index = index++ % positions.Length;
+//     }
+
+//     public override void update()
+//     {
+//         updateState(TransporterState.avaliable);
+//         target = positions[index];
+//     }
+// }
 
 public class PortalTeleport : Teleporter
 {

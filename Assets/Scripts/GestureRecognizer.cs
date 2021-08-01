@@ -10,7 +10,7 @@ public enum GestureType
 {
     Default,
     FingerGesture,
-    TriangleGesture,
+    PalmGesture,
     PortalGesture,
 }
 
@@ -71,8 +71,6 @@ public class Bone
     public bool isLeftHand;
     public OVRSkeleton.BoneId id;
     public Vector3 position;
-
-    private Transform cached;
 
     public Bone(OVRSkeleton Hand, OVRBone OVRFinger, bool isLeft)
     {
@@ -158,11 +156,12 @@ public class GestureRecognizer : MonoBehaviour
             return;
         }
 
-        // if(!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence){
-        //     tpProv.abortTeleport();
-        //     previousGestureDetected = defaultGesture;
-        //     return;
-        // }
+        if (!skeletonLeft.IsDataHighConfidence && !skeletonRight.IsDataHighConfidence)
+        {
+            tpProv.abortTeleport();
+            previousGestureDetected = defaultGesture;
+            return;
+        }
 
         if (/* debugMode && */ OVRInput.GetDown(OVRInput.Button.Start))
         {
@@ -178,7 +177,7 @@ public class GestureRecognizer : MonoBehaviour
         if (ignore)
         {
             // only abort if the gesture is detected
-            if (gesture.Equals(defaultGesture))
+            if (defaultGesture.Equals(gesture))
             {
                 tpProv.abortTeleport();
                 previousGestureDetected = defaultGesture;
@@ -189,11 +188,16 @@ public class GestureRecognizer : MonoBehaviour
         Debug.Log("types: prev " + previousGestureDetected.type + "  ----  next " + gesture.type);
         if (previousGestureDetected.type == gesture.type)
         {
-            if (previousGestureDetected.gestureIndex != gesture.gestureIndex)
+            bool teleportExecuted = tpProv.updateAndTeleport(gesture.gestureIndex);
+
+            // reset to first method after teleport
+            if (teleportExecuted)
             {
-                QuestDebug.Instance.Log("update index: " + gesture.gestureIndex);
+                QuestDebug.Instance.Log("teleport confirmed");
+                previousGestureDetected = SavedGestures.Find((g) => g.type == gesture.type && g.gestureIndex == 0);
+                previousGestureDetected.time = delay + 0.1f;
+                gesture.time = 0f;
             }
-            tpProv.updateTeleport(gesture.gestureIndex);
         }
         else
         {
@@ -234,8 +238,8 @@ public class GestureRecognizer : MonoBehaviour
 
     private Gesture Recognize()
     {
-        float BONUS_DISTANCE = 0.8f;
-        float BONUS_THRESHOLD = 1.2f;
+        float BONUS_DISTANCE = 1f;
+        float BONUS_THRESHOLD = 1f;
         float minSumDistances = Mathf.Infinity;
         Gesture currentGesture = defaultGesture;
 
@@ -252,9 +256,10 @@ public class GestureRecognizer : MonoBehaviour
             else
             {
                 // the gesture is not the first of its type and different to the current
-                // if(gesture.gestureIndex != 0){
-                //     continue;
-                // }
+                if (gesture.gestureIndex != 0)
+                {
+                    continue;
+                }
             }
 
             float dist = distanceBetweenGestures(gesture, couldBeNext ? threshold * BONUS_THRESHOLD : threshold);
@@ -279,7 +284,7 @@ public class GestureRecognizer : MonoBehaviour
 
         // set time delay
         currentGesture.time += Time.deltaTime;
-        Debug.Log("time: " + currentGesture.time);
+        // Debug.Log("time: " + currentGesture.time);
 
         float timeDelay = currentGesture.type == GestureType.Default ? 2f : delay;
         bool needsTime = currentGesture.time < timeDelay;

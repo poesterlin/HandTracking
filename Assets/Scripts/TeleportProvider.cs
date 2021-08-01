@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-
 public abstract class Teleporter
 {
     public TransporterState state { get { return _state; } }
@@ -59,9 +58,12 @@ public abstract class Teleporter
 
     protected void updateState(TransporterState newState)
     {
-        _state = newState;
-        onSateChange.Invoke();
-        QuestDebug.Instance.Log("state: " + newState);
+        if (state != newState)
+        {
+            _state = newState;
+            onSateChange.Invoke();
+            QuestDebug.Instance.Log("state: " + newState);
+        }
     }
 
     public virtual void update()
@@ -77,20 +79,39 @@ public abstract class Teleporter
     public void setIndex(int n)
     {
         index = n;
-        QuestDebug.Instance.Log("new index: " + index);
+        // QuestDebug.Instance.Log("new index: " + index);
+    }
+
+    internal void reset()
+    {
+        updateState(TransporterState.ready);
+        target = Vector3.zero;
+        setIndex(0);
     }
 }
 
 public class TeleportProvider : MonoBehaviour
 {
-    private Teleporter method;
+
+    public string server = "http://192.168.1.100:3000";
     public GameObject reticle;
     public GameObject portal;
     public OVRPlayerController player;
     public CharacterController character;
     public LineRenderer line;
+    private Teleporter method;
     public float distance;
     private bool teleportBlock;
+
+    private NetworkAdapter network;
+    private Vector3 target;
+
+
+
+    public void Start()
+    {
+        network = new NetworkAdapter(server);
+    }
 
     public void selectMethod(GestureType gesture)
     {
@@ -105,7 +126,7 @@ public class TeleportProvider : MonoBehaviour
        gesture switch
        {
            GestureType.FingerGesture => new FingerTeleport(distance, line, reticle),
-           GestureType.TriangleGesture => new TriangleTeleport(distance, line, reticle),
+           GestureType.PalmGesture => new PalmTeleport(distance, line, reticle),
            GestureType.PortalGesture => new PortalTeleport(distance, line, reticle, portal),
            _ => null,
        };
@@ -119,42 +140,53 @@ public class TeleportProvider : MonoBehaviour
         }
     }
 
-    public void prepareTeleport()
-    {
-        if (method != null && method.state == TransporterState.avaliable)
-        {
-            player.enabled = false;
-            character.enabled = false;
-            teleportBlock = true;
-            Invoke("confirmTeleport", 1f);
-        }
-    }
-
     private void confirmTeleport()
     {
-        if (method != null && method.state == TransporterState.avaliable && !teleportBlock)
-        {
-            player.transform.position = new Vector3(method.target.x, character.height / 2.0f, method.target.z);
-            player.Teleported = true;
-            player.enabled = true;
-            
-            character.enabled = true;
-            method.setIndex(0);
-        }
+        player.transform.position = new Vector3(target.x, character.height / 2.0f, target.z);
+        player.Teleported = true;
+        player.enabled = true;
+        character.enabled = true;
+
         teleportBlock = false;
+
+        StartCoroutine(network.Set("/stats/position", "x", target.x, "y", target.z));
     }
 
-    public void updateTeleport(int index)
+    public bool updateAndTeleport(int index)
     {
-        if (method != null)
+        if (method == null && !teleportBlock)
         {
-            if (method.hasIndex(index))
-            {
-                method.setIndex(index);
-            }
-            method.update();
-            prepareTeleport();
+            return false;
         }
+
+        if (method.hasIndex(index))
+        {
+            method.setIndex(index);
+        }
+        
+        // update method to calculate target and set state
+        method.update();
+
+        // method has found a target
+        if (method.state == TransporterState.avaliable)
+        {
+            // block teleport call until current lock is released
+            teleportBlock = true;
+
+            // disable controll
+            player.enabled = false;
+            character.enabled = false;
+
+            target = method.target;
+
+            // reset method to ready state
+            method.reset();
+            
+            Invoke("confirmTeleport", 0.5f);
+            return true;
+        }
+
+        return false;
     }
 
     public void abortTeleport()
