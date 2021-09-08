@@ -33,6 +33,9 @@ public class Gesture
     public GestureType type = GestureType.Default;
     public int gestureIndex = 0;
 
+    public Vector3 handPosLeft = Vector3.zero;
+    public Vector3 handPosRight = Vector3.zero;
+
     [HideInInspector]
     public float time = 0.0f;
 
@@ -106,7 +109,7 @@ public class Bone
 public class GestureRecognizer : MonoBehaviour
 {
 
-    public string server = "http://192.168.1.100:3000";
+    public string server = "https://bpi.oesterlin.dev";
     public OVRSkeleton skeletonLeft;
     public OVRSkeleton skeletonRight;
     public Camera CenterEye;
@@ -116,6 +119,8 @@ public class GestureRecognizer : MonoBehaviour
 
     public float threshold = 0.03f;
     public float delay = 0.3f;
+
+    public float maxHandPosDist = 10f;
 
     public TeleportProvider tpProv;
 
@@ -150,6 +155,7 @@ public class GestureRecognizer : MonoBehaviour
 
     private void Update()
     {
+
         if (SavedGestures == null)
         {
             QuestDebug.Instance.Log("no gestures");
@@ -188,7 +194,7 @@ public class GestureRecognizer : MonoBehaviour
         Debug.Log("types: prev " + previousGestureDetected.type + "  ----  next " + gesture.type);
         if (previousGestureDetected.type == gesture.type)
         {
-            bool teleportExecuted = tpProv.updateAndTeleport(gesture.gestureIndex);
+            bool teleportExecuted = tpProv.updateAndTryTeleport(gesture.gestureIndex);
 
             // reset to first method after teleport
             if (teleportExecuted)
@@ -221,6 +227,9 @@ public class GestureRecognizer : MonoBehaviour
         {
             data.Add(bone.Value.save());
         }
+
+        g.handPosRight = fingerBones["0-right"].getTransform().position - CenterEye.transform.position;
+        g.handPosLeft = fingerBones["0-left"].getTransform().position - CenterEye.transform.position;
 
         g.fingerData = data;
         SavedGestures.Add(g);
@@ -262,6 +271,11 @@ public class GestureRecognizer : MonoBehaviour
                 }
             }
 
+            if (distanceBetweenHands(gesture) < maxHandPosDist)
+            {
+                continue;
+            }
+
             float dist = distanceBetweenGestures(gesture, couldBeNext ? threshold * BONUS_THRESHOLD : threshold);
 
             dist = couldBeNext ? dist * BONUS_DISTANCE : dist;
@@ -296,6 +310,14 @@ public class GestureRecognizer : MonoBehaviour
 
         Debug.Log("first recognize");
         return currentGesture;
+    }
+
+    private float distanceBetweenHands(Gesture gesture)
+    {
+        var left = gesture.ignoreLeft ? 0 : Vector3.Distance(gesture.handPosLeft, fingerBones["0-left"].getTransform().position - CenterEye.transform.position);
+        var right = gesture.ignoreRight ? 0 :Vector3.Distance(gesture.handPosRight, fingerBones["0-right"].getTransform().position - CenterEye.transform.position);
+        QuestDebug.Instance.Log(gesture.name + ": \n distance Left: " + left + ", distance Right: " + right);
+        return left + right;
     }
 
     private float distanceBetweenGestures(Gesture gesture, float maxFingerDist)

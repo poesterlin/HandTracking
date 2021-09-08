@@ -102,14 +102,7 @@ public class FingerTeleport : Teleporter
             reticle.activate();
             reticle.transform.position = target;
 
-            if (index == 1)
-            {
-                updateState(TransporterState.avaliable);
-            }
-            else
-            {
-                updateState(TransporterState.ready);
-            }
+            updateState(index == 1 ? TransporterState.avaliable : TransporterState.ready);
         }
         else
         {

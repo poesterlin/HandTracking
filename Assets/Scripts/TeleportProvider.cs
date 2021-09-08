@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using System.Globalization;
 
 public abstract class Teleporter
 {
@@ -20,14 +22,13 @@ public abstract class Teleporter
     protected int index = 0;
     protected int maxIndex = 0;
 
-
     public Teleporter(float distance, LineRenderer lineRenderer, GameObject targetReticle) : base()
     {
         maxDistance = distance;
         line = lineRenderer;
         line.enabled = false;
 
-        reticleInstance = Object.Instantiate(targetReticle, Vector3.zero, Quaternion.identity);
+        reticleInstance = UnityEngine.Object.Instantiate(targetReticle, Vector3.zero, Quaternion.identity);
         reticle = reticleInstance.GetComponent<Reticle>();
         reticle.deactivate();
     }
@@ -35,7 +36,7 @@ public abstract class Teleporter
     public virtual void abort()
     {
         reset();
-        Object.Destroy(reticleInstance);
+        UnityEngine.Object.Destroy(reticleInstance);
         updateState(TransporterState.aborted);
     }
 
@@ -93,7 +94,7 @@ public abstract class Teleporter
 public class TeleportProvider : MonoBehaviour
 {
 
-    public string server = "http://192.168.1.100:3000";
+    public string server = "https://bpi.oesterlin.dev";
     public GameObject reticle;
     public GameObject portal;
     public OVRPlayerController player;
@@ -101,11 +102,12 @@ public class TeleportProvider : MonoBehaviour
     public LineRenderer line;
     private Teleporter method;
     public float distance;
+    public double teleportDelay = 0.7;
     private bool teleportBlock;
 
     private NetworkAdapter network;
     private Vector3 target;
-
+    private DateTime lastTeleport = DateTime.Now;
 
 
     public void Start()
@@ -150,9 +152,10 @@ public class TeleportProvider : MonoBehaviour
         teleportBlock = false;
 
         StartCoroutine(network.Set("/stats/position", "x", target.x, "y", target.z));
+        lastTeleport = DateTime.Now;
     }
 
-    public bool updateAndTeleport(int index)
+    public bool updateAndTryTeleport(int index)
     {
         if (method == null && !teleportBlock)
         {
@@ -163,12 +166,12 @@ public class TeleportProvider : MonoBehaviour
         {
             method.setIndex(index);
         }
-        
+
         // update method to calculate target and set state
         method.update();
 
         // method has found a target
-        if (method.state == TransporterState.avaliable)
+        if (method.state == TransporterState.avaliable && lastTeleport.AddSeconds(teleportDelay).CompareTo(DateTime.Now) < 0)
         {
             // block teleport call until current lock is released
             teleportBlock = true;
@@ -181,7 +184,7 @@ public class TeleportProvider : MonoBehaviour
 
             // reset method to ready state
             method.reset();
-            
+
             Invoke("confirmTeleport", 0.5f);
             return true;
         }

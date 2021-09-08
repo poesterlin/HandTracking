@@ -4,18 +4,24 @@ using UnityEngine;
 
 public class HandTrackingGrabbable : OVRGrabbable
 {
-    // private Controller Controller;
+    public Mortar mortar;
+    public float distance = 2f;
 
     protected override void Start()
     {
         base.Start();
-        // Controller = GetComponent<Controller>();
     }
 
     public override void GrabEnd(Vector3 linearVelocity, Vector3 angularVelocity)
     {
         base.GrabEnd(linearVelocity, angularVelocity);
-        // GetComponent<Controller>().OnGrabEnd();
+        var mortarPos = mortar.gameObject.transform.position;
+
+        if (Vector3.Distance(mortarPos, gameObject.transform.position) < distance)
+        {
+            mortar.AddPotion();
+            Destroy(gameObject);
+        }
     }
 
 }

@@ -17,7 +17,6 @@ public class NetworkAdapter
 
     public IEnumerator Set(string endpoint, params object[] properties)
     {
-
         string bodyJsonString = "{";
 
         for (int i = 0; i + 1 < properties.Length; i += 2)

@@ -11,8 +11,7 @@ using System.Text;
 
 public class QuestDebug : MonoBehaviour
 {
-
-    public string server = "http://192.168.1.100:3000";
+    public string server = "https://bpi.oesterlin.dev";
     public static QuestDebug Instance;
     public Text logs;
 
