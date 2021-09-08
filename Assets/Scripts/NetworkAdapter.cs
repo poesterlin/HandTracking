@@ -69,22 +69,4 @@ public class NetworkAdapter
         yield return request.SendWebRequest();
         Debug.Log("Status Code: " + request.responseCode);
     }
-
-    public IEnumerator Get(GestureRecognizer inst)
-    {
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture"))
-        {
-            // Request and wait for the desired page.
-            yield return webRequest.SendWebRequest();
-
-            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
-            {
-                Debug.Log("Error: " + webRequest.error);
-            }
-
-            GestureList list = Gesture.CreateFromJSON(webRequest.downloadHandler.text);
-            inst.SavedGestures = new List<Gesture>(list.Gestures);
-            QuestDebug.Instance.Log("downloaded " + inst.SavedGestures.Count + " gestures");
-        }
-    }
 }

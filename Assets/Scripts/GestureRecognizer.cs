@@ -1,9 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using WebSocketSharp;
+
 
 [Serializable]
 public enum GestureType
@@ -106,29 +106,17 @@ public class Bone
 public class GestureRecognizer : MonoBehaviour
 {
 
-    public string server = "http://192.168.1.100:3000";
+    public string server = "server.oesterlin.dev";
+    WebSocket ws;
     public OVRSkeleton skeletonLeft;
     public OVRSkeleton skeletonRight;
-    public Camera CenterEye;
-    public List<Gesture> SavedGestures;
-
     private SortedList<string, Bone> fingerBones;
 
-    public float threshold = 0.03f;
-    public float delay = 0.3f;
-
-    public TeleportProvider tpProv;
-
-    [Header("Debugging")]
-    public bool debugMode = true;
-    private static Gesture defaultGesture = new Gesture("default");
-    private Gesture previousGestureDetected = defaultGesture;
-
     private NetworkAdapter network;
+    private bool shouldSave;
 
     private SortedList<string, Bone> getBones(SortedList<string, Bone> list, OVRSkeleton Hand, bool isLeft)
     {
-
         foreach (var bone in Hand.Bones)
         {
             list.Add(((int)bone.Id) + "-" + (isLeft ? "left" : "right"), new Bone(Hand, bone, isLeft));
@@ -143,74 +131,30 @@ public class GestureRecognizer : MonoBehaviour
         getBones(fingerBones, skeletonRight, false);
         getBones(fingerBones, skeletonLeft, true);
 
-        network = new NetworkAdapter(server);
-        StartCoroutine(network.Get(this));
-        QuestDebug.Instance.Log("waiting for gestures");
+        network = new NetworkAdapter("https://" + server);
+
+        ws = new WebSocket("wss://" + server + ":8080");
+        ws.Connect();
+        ws.OnMessage += (object sender, MessageEventArgs e) => MessageReceived(sender, e);
+        ws.OnClose += (object sender, CloseEventArgs e) =>
+        {
+            Debug.Log("closing: " + e.Reason + "(" + e.Code + ")");
+            Invoke("Reconnect", 1f);
+        };
+
+        ws.OnError += (object sender, ErrorEventArgs e) =>
+        {
+            Debug.Log("error: " + e.Message);
+            Debug.Log(e.Exception);
+            Invoke("Reconnect", 1f);
+        };
     }
 
-    private void Update()
-    {
-        if (SavedGestures == null)
-        {
-            QuestDebug.Instance.Log("no gestures");
-            return;
+    private void Update(){
+        if(shouldSave){
+            shouldSave = false;
+            SaveAsGesture();
         }
-
-        if (!skeletonLeft.IsDataHighConfidence && !skeletonRight.IsDataHighConfidence)
-        {
-            tpProv.abortTeleport();
-            previousGestureDetected = defaultGesture;
-            return;
-        }
-
-        if (/* debugMode && */ OVRInput.GetDown(OVRInput.Button.Start))
-        {
-            QuestDebug.Instance.Log("make a gesture to save in 2 seconds");
-            Invoke("SaveAsGesture", 2);
-            return;
-        }
-
-        Debug.Log("recognize starting");
-        Gesture gesture = Recognize();
-        Debug.Log("recognize done");
-        bool ignore = gesture == null || gesture.Equals(defaultGesture);
-        if (ignore)
-        {
-            // only abort if the gesture is detected
-            if (defaultGesture.Equals(gesture))
-            {
-                tpProv.abortTeleport();
-                previousGestureDetected = defaultGesture;
-            }
-            return;
-        }
-
-        Debug.Log("types: prev " + previousGestureDetected.type + "  ----  next " + gesture.type);
-        if (previousGestureDetected.type == gesture.type)
-        {
-            bool teleportExecuted = tpProv.updateAndTeleport(gesture.gestureIndex);
-
-            // reset to first method after teleport
-            if (teleportExecuted)
-            {
-                QuestDebug.Instance.Log("teleport confirmed");
-                previousGestureDetected = SavedGestures.Find((g) => g.type == gesture.type && g.gestureIndex == 0);
-                previousGestureDetected.time = delay + 0.1f;
-                gesture.time = 0f;
-            }
-        }
-        else
-        {
-            previousGestureDetected.time = 0f;
-            QuestDebug.Instance.Log("found " + gesture.name + " of type " + gesture.type);
-
-            tpProv.abortTeleport();
-            tpProv.selectMethod(gesture.type);
-            tpProv.initTeleport(new TrackingInfo(CenterEye, skeletonRight, skeletonLeft, fingerBones, Hand.right));
-        }
-        previousGestureDetected = gesture;
-
-
     }
 
     public void SaveAsGesture()
@@ -223,115 +167,27 @@ public class GestureRecognizer : MonoBehaviour
         }
 
         g.fingerData = data;
-        SavedGestures.Add(g);
 
         StartCoroutine(network.Post(g.ToJson()));
         QuestDebug.Instance.Log("new gesture saved");
-        Invoke("reload", 2);
+        ws.Send("done");
     }
 
-    private void reload()
+    private void MessageReceived(object sender, MessageEventArgs e)
     {
-        StartCoroutine(network.Get(this));
-        QuestDebug.Instance.Log("reloaded");
+        string saveCmd = "save";
+        if (saveCmd.Equals(e.Data))
+        {
+            shouldSave = true;
+        }
     }
 
-    private Gesture Recognize()
+
+    private void Reconnect()
     {
-        float BONUS_DISTANCE = 1f;
-        float BONUS_THRESHOLD = 1f;
-        float minSumDistances = Mathf.Infinity;
-        Gesture currentGesture = defaultGesture;
-
-        // test gestures 
-        foreach (var gesture in SavedGestures)
-        {
-            bool couldBeNext = false;
-
-            bool sameType = gesture.type == previousGestureDetected.type;
-            if (sameType && gesture.gestureIndex > previousGestureDetected.gestureIndex)
-            {
-                couldBeNext = true;
-            }
-            else
-            {
-                // the gesture is not the first of its type and different to the current
-                if (gesture.gestureIndex != 0)
-                {
-                    continue;
-                }
-            }
-
-            float dist = distanceBetweenGestures(gesture, couldBeNext ? threshold * BONUS_THRESHOLD : threshold);
-
-            dist = couldBeNext ? dist * BONUS_DISTANCE : dist;
-
-            var keepGesture = dist > 0 && dist < Mathf.Infinity;
-
-            if (dist < minSumDistances && keepGesture)
-            {
-                minSumDistances = dist;
-                currentGesture = gesture;
-            }
-        }
-
-        Debug.Log("detected: " + currentGesture.name);
-        if (currentGesture.type == previousGestureDetected.type && currentGesture.type != GestureType.Default)
-        {
-            Debug.Log("same type");
-            return currentGesture;
-        }
-
-        // set time delay
-        currentGesture.time += Time.deltaTime;
-        // Debug.Log("time: " + currentGesture.time);
-
-        float timeDelay = currentGesture.type == GestureType.Default ? 2f : delay;
-        bool needsTime = currentGesture.time < timeDelay;
-        if (needsTime)
-        {
-            Debug.Log("needs time");
-            return null;
-        }
-
-        Debug.Log("first recognize");
-        return currentGesture;
-    }
-
-    private float distanceBetweenGestures(Gesture gesture, float maxFingerDist)
-    {
-        float ignoredFingerPenalty = 0.03f;
-        float sumDistances = 0;
-        for (int i = 0; i < fingerBones.Count; i++)
-        {
-            var storedFinger = gesture.fingerData[i];
-            string key = ((int)storedFinger.id) + "-" + (storedFinger.isLeftHand ? "left" : "right");
-
-            var finger = fingerBones[key];
-
-            // is finger ignored
-            if ((gesture.ignoreLeft && finger.isLeftHand) || (gesture.ignoreRight && !finger.isLeftHand))
-            {
-                sumDistances += ignoredFingerPenalty;
-                continue;
-            }
-
-            Vector3 currentData = finger.getRelativePosition();
-            float distance = Vector3.Distance(currentData, storedFinger.position);
-            if (distance > maxFingerDist)
-            {
-                gesture.time = 0f;
-                Debug.Log("--- abort gesture: " + gesture.name);
-                Debug.Log("distance above threshold (max " + maxFingerDist + ") :" + distance + " for finger " + storedFinger.id + (storedFinger.isLeftHand ? " (left)" : " (right)"));
-                return Mathf.Infinity;
-            }
-
-            sumDistances += distance;
-        }
-
-
-        Debug.Log("gesture: " + gesture.name + " dist: " + sumDistances);
-        return sumDistances;
+        Debug.Log("reconnecting");
+        ws.Close();
+        ws.Connect();
     }
 }
 
