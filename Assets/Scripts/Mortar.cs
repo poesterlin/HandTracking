@@ -7,7 +7,7 @@ public class Mortar : MonoBehaviour
     public Animator m_Animator;
     public ParticleSystem dust;
 
-    public AudioSource audio;
+    public AudioSource audio1;
     public AudioSource audio2;
 
     public float dist = 5f;
@@ -21,7 +21,7 @@ public class Mortar : MonoBehaviour
     public void AddPotion(){
         m_Animator.SetTrigger("AddPotion");
         dust.Play();
-        audio.Play();
+        audio1.Play();
         audio2.PlayDelayed(0.8f);
     }
 }

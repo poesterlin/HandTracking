@@ -120,7 +120,7 @@ public class GestureRecognizer : MonoBehaviour
     public float threshold = 0.03f;
     public float delay = 0.3f;
 
-    public float maxHandPosDist = 10f;
+    public float maxHandPosDist = 0.5f;
 
     public TeleportProvider tpProv;
 
@@ -228,10 +228,10 @@ public class GestureRecognizer : MonoBehaviour
             data.Add(bone.Value.save());
         }
 
-        g.handPosRight = fingerBones["0-right"].getTransform().position - CenterEye.transform.position;
-        g.handPosLeft = fingerBones["0-left"].getTransform().position - CenterEye.transform.position;
-
         g.fingerData = data;
+
+        g.handPosLeft = getPalmNormal(getFingers(true));
+        g.handPosRight = getPalmNormal(getFingers(false));
         SavedGestures.Add(g);
 
         StartCoroutine(network.Post(g.ToJson()));
@@ -253,6 +253,7 @@ public class GestureRecognizer : MonoBehaviour
         Gesture currentGesture = defaultGesture;
 
         // test gestures 
+
         foreach (var gesture in SavedGestures)
         {
             bool couldBeNext = false;
@@ -271,7 +272,16 @@ public class GestureRecognizer : MonoBehaviour
                 }
             }
 
-            if (distanceBetweenHands(gesture) < maxHandPosDist)
+            var threshold = 0.3f;
+
+            // check the hand positioning
+            var left = true;
+            if (!gesture.ignoreLeft && Vector3.Distance(getPalmNormal(getFingers(left)), gesture.handPosLeft) > threshold)
+            {
+                continue;
+            }
+
+            if (!gesture.ignoreRight && Vector3.Distance(getPalmNormal(getFingers(!left)), gesture.handPosRight) > threshold)
             {
                 continue;
             }
@@ -312,12 +322,24 @@ public class GestureRecognizer : MonoBehaviour
         return currentGesture;
     }
 
-    private float distanceBetweenHands(Gesture gesture)
+    private Bone[] getFingers(bool isLeftHand)
     {
-        var left = gesture.ignoreLeft ? 0 : Vector3.Distance(gesture.handPosLeft, fingerBones["0-left"].getTransform().position - CenterEye.transform.position);
-        var right = gesture.ignoreRight ? 0 :Vector3.Distance(gesture.handPosRight, fingerBones["0-right"].getTransform().position - CenterEye.transform.position);
-        QuestDebug.Instance.Log(gesture.name + ": \n distance Left: " + left + ", distance Right: " + right);
-        return left + right;
+        string hand = isLeftHand ? "left" : "right";
+        return new Bone[]{
+            fingerBones["0-" + hand],
+            fingerBones["6-" + hand],
+            fingerBones["16-" + hand]
+        };
+    }
+    private Vector3 getPalmNormal(params Bone[] points)
+    {
+        var p = new Plane(
+            points[0].getTransform().position,
+            points[1].getTransform().position,
+            points[2].getTransform().position
+        );
+
+        return p.normal;
     }
 
     private float distanceBetweenGestures(Gesture gesture, float maxFingerDist)

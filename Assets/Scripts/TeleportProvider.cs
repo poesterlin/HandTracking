@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using System.Globalization;
 
 public abstract class Teleporter
 {
@@ -93,7 +90,6 @@ public abstract class Teleporter
 
 public class TeleportProvider : MonoBehaviour
 {
-
     public string server = "https://bpi.oesterlin.dev";
     public GameObject reticle;
     public GameObject portal;
@@ -103,12 +99,22 @@ public class TeleportProvider : MonoBehaviour
     private Teleporter method;
     public float distance;
     public double teleportDelay = 0.7;
+
+    public UnityEvent<Vector3> OnTeleport = new UnityEvent<Vector3>();
+
+    public bool freeTeleport = true;
+    public bool updateMapStat = true;
     private bool teleportBlock;
 
     private NetworkAdapter network;
     private Vector3 target;
     private DateTime lastTeleport = DateTime.Now;
+    private GestureType[] _allowedTypes = new GestureType[0];
 
+    public GestureType[] AllowedTypes
+    {
+        set { _allowedTypes = value; }
+    }
 
     public void Start()
     {
@@ -121,7 +127,10 @@ public class TeleportProvider : MonoBehaviour
         {
             abortTeleport();
         }
-        method = getType(gesture);
+        if (_allowedTypes.Length != 0 && Array.Exists(_allowedTypes, g => g == gesture))
+        {
+            method = getType(gesture);
+        }
     }
 
     public Teleporter getType(GestureType gesture) =>
@@ -150,9 +159,12 @@ public class TeleportProvider : MonoBehaviour
         character.enabled = true;
 
         teleportBlock = false;
-
-        StartCoroutine(network.Set("/stats/position", "x", target.x, "y", target.z));
+        if (updateMapStat)
+        {
+            StartCoroutine(network.Set("/stats/position", "x", target.x, "y", target.z));
+        }
         lastTeleport = DateTime.Now;
+        OnTeleport.Invoke(player.transform.position);
     }
 
     public bool updateAndTryTeleport(int index)
