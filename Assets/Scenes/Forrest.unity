@@ -11524,7 +11524,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 22451668, guid: 0abab5bb77339e4428787a870eb31bd3, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 22451668, guid: 0abab5bb77339e4428787a870eb31bd3, type: 3}
       propertyPath: m_AnchorMax.x
@@ -13565,7 +13565,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01949ac49249a7340aeb20efdf23346b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  server: https://bpi.oesterlin.dev
   reticle: {fileID: 7005332186328663670, guid: 5f46b5ebeea9cc14cb1996f1c781fb92, type: 3}
   portal: {fileID: 3720422464223563763, guid: dee96cc2999354e41bbe6864642b7e68, type: 3}
   player: {fileID: 223974230}
@@ -13573,6 +13572,11 @@ MonoBehaviour:
   line: {fileID: 574222616}
   distance: 8
   teleportDelay: 0.7
+  OnTeleport:
+    m_PersistentCalls:
+      m_Calls: []
+  freeTeleport: 1
+  updateMapStat: 1
 --- !u!4 &574222618
 Transform:
   m_ObjectHideFlags: 0
@@ -13585,7 +13589,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &576604828
 PrefabInstance:
@@ -20801,6 +20805,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5890529065630888824, guid: bb57c1e01794ba34cb07e4798e196cf8, type: 3}
   m_PrefabInstance: {fileID: 937338990}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &952977548
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 952977550}
+  - component: {fileID: 952977549}
+  m_Layer: 0
+  m_Name: Setup
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &952977549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 952977548}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7b4ac3f606298449cae6aa0c356e46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  server: https://bpi.oesterlin.dev
+--- !u!4 &952977550
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 952977548}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -64.56063, y: -18.07123, z: -79.76801}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &955964576
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27478,7 +27526,7 @@ Transform:
   - {fileID: 340198153}
   - {fileID: 491048071}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1270357816
 PrefabInstance:
@@ -27873,8 +27921,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Animator: {fileID: 1311399627}
   dust: {fileID: 27137342}
-  audio: {fileID: 1311399629}
+  audio1: {fileID: 0}
   audio2: {fileID: 1311399630}
+  OnPotion:
+    m_PersistentCalls:
+      m_Calls: []
   dist: 2
 --- !u!95 &1311399627 stripped
 Animator:
@@ -28408,7 +28459,7 @@ Transform:
   - {fileID: 141547494}
   - {fileID: 2082174231}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1380902173
 PrefabInstance:
@@ -28904,6 +28955,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8830217768945194996, guid: 8a8b564f3cd379349b2b01487d59f8c6, type: 3}
   m_PrefabInstance: {fileID: 1408916502}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1409006383
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1409006385}
+  - component: {fileID: 1409006384}
+  m_Layer: 0
+  m_Name: StudyObserver
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1409006384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1409006383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de062ea747c0b9343bdd6530e6bb32a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportProvider: {fileID: 574222617}
+  player: {fileID: 223974230}
+  mortar: {fileID: 1311399626}
+--- !u!4 &1409006385
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1409006383}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -102.54053, y: -43.657917, z: -2.0283222}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1416908595
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30606,7 +30703,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400006, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
       propertyPath: m_RootOrder
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 400006, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -32686,7 +32783,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21c7292d3fae45844a2eef4ea67bf78b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  server: https://bpi.oesterlin.dev
   skeletonLeft: {fileID: 540692618}
   skeletonRight: {fileID: 720031286}
   CenterEye: {fileID: 463930441}
@@ -32708,7 +32804,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2080461208
 MonoBehaviour:
@@ -32722,7 +32818,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 809edfe3ba725fc48827c6d9dafe8d40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  server: http://192.168.1.100:3000
   logs: {fileID: 0}
 --- !u!1001 &2081999284
 PrefabInstance:

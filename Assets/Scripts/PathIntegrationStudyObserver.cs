@@ -1,8 +1,7 @@
 using UnityEngine;
 
-public class StudyObserver : MonoBehaviour
+public class PathIntegrationStudyObserver : MonoBehaviour
 {
-    public string server = "https://bpi.oesterlin.dev";
     public TeleportProvider teleportProvider;
     public OVRPlayerController player;
     private NetworkAdapter network;
@@ -13,6 +12,7 @@ public class StudyObserver : MonoBehaviour
 
     void Start()
     {
+        var server = PlayerPrefs.GetString("server");
         network = new NetworkAdapter(server);
 
         teleportProvider.OnTeleport.AddListener(UpdateState);
@@ -24,6 +24,11 @@ public class StudyObserver : MonoBehaviour
     void UpdateState(Vector3 newPos)
     {
         SendDistance(Vector3.Distance(startPos, newPos));
+        if (state + 1 == typeArray.Length)
+        {
+            StudyDone();
+            return;
+        }
         startPos = newPos;
         state += 1;
         SetTeleporterState();
@@ -40,7 +45,10 @@ public class StudyObserver : MonoBehaviour
     {
         StartCoroutine(network.Set("/stats/distance", "distance", distance, "type", (int)typeArray[state]));
     }
-
+    void StudyDone()
+    { 
+        Debug.Log("The study is completed");
+    }
     void Shuffle<T>(T[] a)
     {
         for (int i = a.Length - 1; i > 0; i--)

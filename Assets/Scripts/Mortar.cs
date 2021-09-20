@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Mortar : MonoBehaviour
 {
@@ -9,6 +8,8 @@ public class Mortar : MonoBehaviour
 
     public AudioSource audio1;
     public AudioSource audio2;
+    public UnityEvent OnPotion = new UnityEvent();
+
 
     public float dist = 5f;
 
@@ -23,5 +24,6 @@ public class Mortar : MonoBehaviour
         dust.Play();
         audio1.Play();
         audio2.PlayDelayed(0.8f);
+        OnPotion.Invoke();
     }
 }

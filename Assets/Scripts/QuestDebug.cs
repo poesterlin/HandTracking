@@ -11,20 +11,11 @@ using System.Text;
 
 public class QuestDebug : MonoBehaviour
 {
-    public string server = "https://bpi.oesterlin.dev";
     public static QuestDebug Instance;
     public Text logs;
 
     void Awake(){
         Instance = this;
-    }
-
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        // var rt = DebugUIBuilder.instance.AddLabel("Gestures");
-        // logs = rt.GetComponent<Text>();
     }
 
     // Update is called once per frame
@@ -38,7 +29,7 @@ public class QuestDebug : MonoBehaviour
 
 
     private IEnumerator postLog(string msg){
-        var request = new UnityWebRequest(server + "/logs", "POST");
+        var request = new UnityWebRequest(PlayerPrefs.GetString("server") + "/logs", "POST");
 
         byte[] bodyRaw = Encoding.UTF8.GetBytes(msg);
         request.uploadHandler = (UploadHandler) new UploadHandlerRaw(bodyRaw);

@@ -109,7 +109,6 @@ public class Bone
 public class GestureRecognizer : MonoBehaviour
 {
 
-    public string server = "https://bpi.oesterlin.dev";
     public OVRSkeleton skeletonLeft;
     public OVRSkeleton skeletonRight;
     public Camera CenterEye;
@@ -148,6 +147,7 @@ public class GestureRecognizer : MonoBehaviour
         getBones(fingerBones, skeletonRight, false);
         getBones(fingerBones, skeletonLeft, true);
 
+        string server = PlayerPrefs.GetString("server");
         network = new NetworkAdapter(server);
         StartCoroutine(network.Get(this));
         QuestDebug.Instance.Log("waiting for gestures");

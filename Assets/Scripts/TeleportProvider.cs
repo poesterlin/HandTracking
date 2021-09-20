@@ -90,7 +90,6 @@ public abstract class Teleporter
 
 public class TeleportProvider : MonoBehaviour
 {
-    public string server = "https://bpi.oesterlin.dev";
     public GameObject reticle;
     public GameObject portal;
     public OVRPlayerController player;
@@ -118,7 +117,7 @@ public class TeleportProvider : MonoBehaviour
 
     public void Start()
     {
-        network = new NetworkAdapter(server);
+        network = new NetworkAdapter(PlayerPrefs.GetString("server"));
     }
 
     public void selectMethod(GestureType gesture)
