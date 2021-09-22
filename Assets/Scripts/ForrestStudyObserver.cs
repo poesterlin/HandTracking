@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 [Serializable]
 public class TeleportRecord
 {
     public float delayToNext = 0;
+    public float distance;
     public DateTime recorded = new DateTime();
     public GestureType type;
     public Vector3 position;
@@ -21,8 +23,10 @@ public class TeleportRecord
 public class ForrestStudyObserver : MonoBehaviour
 {
     public TeleportProvider teleportProvider;
+    public GestureRecognizer recognizer;
     public OVRPlayerController player;
     public Mortar mortar;
+    public Text canvasText;
     private NetworkAdapter network;
     private Vector3 startPos;
     private int state = 0;
@@ -63,14 +67,18 @@ public class ForrestStudyObserver : MonoBehaviour
 
     void AddRecord(Vector3 newPos)
     {
+        if (records.Count > 0)
+        {
+            var prev = records.First();
+            prev.distance = Vector3.Distance(prev.position, newPos);
+        }
         records.Add(new TeleportRecord(typeArray[state], newPos));
+
     }
 
     void SetTeleporterState()
     {
-        var allowedArr = new GestureType[1];
-        allowedArr[0] = typeArray[state];
-        teleportProvider.AllowedTypes = allowedArr;
+        recognizer.AllowedType = typeArray[state];
     }
 
     void SendStats()

@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditorInternal;
 using UnityEngine;
 
 public class Flask : MonoBehaviour
@@ -13,31 +10,30 @@ public class Flask : MonoBehaviour
     public float snapSpeed;
 
     public Mortar mortar;
+    public Rigidbody body;
     public Vector3[] positions;
     private int count = 0;
-    private Rigidbody body;
 
     void Reset()
     {
         wasGrabbed = false;
         isGrabbed = false;
-        grabbable.Disable();
+        // grabbable.Disable();
         count += 1;
+        body.velocity = Vector3.zero;
+        body.angularVelocity = Vector3.zero;
         // transform.localPosition = positions[count];
     }
 
-    // Start is called before the first frame update
     void Start()
     {
         Shuffle(positions);
         mortar.OnPotion.AddListener(Reset);
         grabbable.wasGrabbed.AddListener(Grab);
         grabbable.wasReleased.AddListener(Released);
-        body = gameObject.GetComponent<Rigidbody>();
         Reset();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (wasGrabbed && !isGrabbed)
@@ -45,6 +41,7 @@ public class Flask : MonoBehaviour
             body.useGravity = false;
             var step = snapSpeed * Time.deltaTime;
             transform.position = Vector3.MoveTowards(transform.position, player.transform.position + hipsOffset, step);
+            transform.rotation = Quaternion.identity;
         }
         else
         {
@@ -67,7 +64,7 @@ public class Flask : MonoBehaviour
     {
         for (int i = a.Length - 1; i > 0; i--)
         {
-            int rnd = UnityEngine.Random.Range(0, i);
+            int rnd = Random.Range(0, i);
             T temp = a[i];
             a[i] = a[rnd];
             a[rnd] = temp;

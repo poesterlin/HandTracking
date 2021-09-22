@@ -101,19 +101,12 @@ public class TeleportProvider : MonoBehaviour
 
     public UnityEvent<Vector3> OnTeleport = new UnityEvent<Vector3>();
 
-    public bool freeTeleport = true;
     public bool updateMapStat = true;
     private bool teleportBlock;
 
     private NetworkAdapter network;
     private Vector3 target;
     private DateTime lastTeleport = DateTime.Now;
-    private GestureType[] _allowedTypes = new GestureType[0];
-
-    public GestureType[] AllowedTypes
-    {
-        set { _allowedTypes = value; }
-    }
 
     public void Start()
     {
@@ -126,10 +119,7 @@ public class TeleportProvider : MonoBehaviour
         {
             abortTeleport();
         }
-        if (_allowedTypes.Length != 0 && Array.Exists(_allowedTypes, g => g == gesture))
-        {
-            method = getType(gesture);
-        }
+        method = getType(gesture);
     }
 
     public Teleporter getType(GestureType gesture) =>
@@ -152,10 +142,14 @@ public class TeleportProvider : MonoBehaviour
 
     private void confirmTeleport()
     {
+        if (!teleportBlock)
+        {
+            return;
+        }
         player.transform.position = new Vector3(target.x, character.height / 2.0f, target.z);
         player.Teleported = true;
         player.enabled = true;
-        character.enabled = true;
+        // character.enabled = true;
 
         teleportBlock = false;
         if (updateMapStat)

@@ -38,8 +38,8 @@ public class HandTrackingGrabbable : OVRGrabbable
         }
     }
 
-    internal void Disable()
-    {
-        GrabEnd(Vector3.zero, Vector3.zero);
-    }
+    // internal void Disable()
+    // {
+    //     GrabEnd(Vector3.zero, Vector3.zero);
+    // }
 }

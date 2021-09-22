@@ -125,6 +125,12 @@ public class GestureRecognizer : MonoBehaviour
 
     [Header("Debugging")]
     public bool debugMode = true;
+    private GestureType? _allowedType;
+
+    public GestureType AllowedType
+    {
+        set { _allowedType = value; }
+    }
     private static Gesture defaultGesture = new Gesture("default");
     private Gesture previousGestureDetected = defaultGesture;
 
@@ -183,9 +189,10 @@ public class GestureRecognizer : MonoBehaviour
         if (ignore)
         {
             // only abort if the gesture is detected
-            if (defaultGesture.Equals(gesture))
+            if (!defaultGesture.Equals(gesture))
             {
                 tpProv.abortTeleport();
+                previousGestureDetected.time = 0;
                 previousGestureDetected = defaultGesture;
             }
             return;
@@ -253,8 +260,12 @@ public class GestureRecognizer : MonoBehaviour
         Gesture currentGesture = defaultGesture;
 
         // test gestures 
-
-        foreach (var gesture in SavedGestures)
+        var allowed = SavedGestures;
+        if (_allowedType != null)
+        {
+            allowed = allowed.FindAll((g) => g.type == _allowedType);
+        }
+        foreach (var gesture in allowed)
         {
             bool couldBeNext = false;
 
@@ -275,16 +286,16 @@ public class GestureRecognizer : MonoBehaviour
             var threshold = 0.3f;
 
             // check the hand positioning
-            var left = true;
-            if (!gesture.ignoreLeft && Vector3.Distance(getPalmNormal(getFingers(left)), gesture.handPosLeft) > threshold)
-            {
-                continue;
-            }
+            // var left = true;
+            // if (!gesture.ignoreLeft && Vector3.Distance(getPalmNormal(getFingers(left)), gesture.handPosLeft) > threshold)
+            // {
+            //     continue;
+            // }
 
-            if (!gesture.ignoreRight && Vector3.Distance(getPalmNormal(getFingers(!left)), gesture.handPosRight) > threshold)
-            {
-                continue;
-            }
+            // if (!gesture.ignoreRight && Vector3.Distance(getPalmNormal(getFingers(!left)), gesture.handPosRight) > threshold)
+            // {
+            //     continue;
+            // }
 
             float dist = distanceBetweenGestures(gesture, couldBeNext ? threshold * BONUS_THRESHOLD : threshold);
 

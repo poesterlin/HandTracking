@@ -271,11 +271,19 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8100000, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 11400002, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
       propertyPath: _trackingOriginType
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 11493974, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 14300000, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
@@ -343,6 +351,22 @@ MonoBehaviour:
   RotationAngle: 45
   Speed: 0
   CameraRig: {fileID: 254333311}
+--- !u!114 &254333316 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 11400010, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
+  m_PrefabInstance: {fileID: 254333309}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 254333310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0950df82e7936c84983497630bde5b54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!143 &254333319 stripped
+CharacterController:
+  m_CorrespondingSourceObject: {fileID: 14300000, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
+  m_PrefabInstance: {fileID: 254333309}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &505483297
 GameObject:
   m_ObjectHideFlags: 0
@@ -503,16 +527,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   reticle: {fileID: 7005332186328663670, guid: 5f46b5ebeea9cc14cb1996f1c781fb92, type: 3}
   portal: {fileID: 3720422464223563763, guid: dee96cc2999354e41bbe6864642b7e68, type: 3}
-  player: {fileID: 0}
-  character: {fileID: 0}
+  player: {fileID: 254333316}
+  character: {fileID: 254333319}
   line: {fileID: 661298121}
   distance: 8
   teleportDelay: 0.7
   OnTeleport:
     m_PersistentCalls:
       m_Calls: []
-  freeTeleport: 0
-  updateMapStat: 1
+  updateMapStat: 0
 --- !u!4 &661298123
 Transform:
   m_ObjectHideFlags: 0
@@ -570,9 +593,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21c7292d3fae45844a2eef4ea67bf78b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skeletonLeft: {fileID: 0}
-  skeletonRight: {fileID: 0}
-  CenterEye: {fileID: 0}
+  skeletonLeft: {fileID: 1200293400}
+  skeletonRight: {fileID: 782865255}
+  CenterEye: {fileID: 1894006114}
   SavedGestures: []
   threshold: 0.05
   delay: 0.3
@@ -726,6 +749,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &782865255 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114567484643301796, guid: 835e735ca71bf78459fb2cababd74112, type: 3}
+  m_PrefabInstance: {fileID: 782865245}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 782865247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2609c54f376cffc4da1ab9401cc1a36f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1200293390
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -859,6 +893,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1200293400 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114567484643301796, guid: 835e735ca71bf78459fb2cababd74112, type: 3}
+  m_PrefabInstance: {fileID: 1200293390}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1200293392}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2609c54f376cffc4da1ab9401cc1a36f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1338225207
 GameObject:
   m_ObjectHideFlags: 0
@@ -1323,11 +1368,16 @@ Transform:
   m_GameObject: {fileID: 1779567830}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 5.34, z: 0}
-  m_LocalScale: {x: 10, y: 1, z: 10}
+  m_LocalScale: {x: 6, y: 1, z: 6}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!20 &1894006114 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 2015248, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
+  m_PrefabInstance: {fileID: 254333309}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1991537674
 GameObject:
   m_ObjectHideFlags: 0
@@ -1387,8 +1437,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f78ef6d10b24eba45aac0cbf806210b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teleportProvider: {fileID: 0}
-  player: {fileID: 0}
+  teleportProvider: {fileID: 661298122}
+  recognizer: {fileID: 674950031}
+  player: {fileID: 254333316}
 --- !u!4 &2091336563
 Transform:
   m_ObjectHideFlags: 0
@@ -1432,7 +1483,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea7b4ac3f606298449cae6aa0c356e46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  server: https://bpi.oesterlin.dev
+  productionServer: https://bpi.oesterlin.dev
+  devServer: http://192.168.1.100:3000
+  productionSettings: 0
 --- !u!4 &2123747568
 Transform:
   m_ObjectHideFlags: 0

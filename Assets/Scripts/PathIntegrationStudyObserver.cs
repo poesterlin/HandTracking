@@ -3,6 +3,7 @@ using UnityEngine;
 public class PathIntegrationStudyObserver : MonoBehaviour
 {
     public TeleportProvider teleportProvider;
+    public GestureRecognizer recognizer;
     public OVRPlayerController player;
     private NetworkAdapter network;
     private Vector3 startPos;
@@ -36,9 +37,7 @@ public class PathIntegrationStudyObserver : MonoBehaviour
 
     void SetTeleporterState()
     {
-        var allowedArr = new GestureType[1];
-        allowedArr[0] = typeArray[state];
-        teleportProvider.AllowedTypes = allowedArr;
+        // recognizer.AllowedType = typeArray[state];
     }
 
     void SendDistance(float distance)
