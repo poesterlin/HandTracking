@@ -31,15 +31,11 @@ public class HandTrackingGrabbable : OVRGrabbable
         if (Vector3.Distance(mortarPos, gameObject.transform.position) < distance)
         {
             mortar.AddPotion();
+            Destroy(gameObject);
         }
         else
         {
             wasReleased.Invoke();
         }
     }
-
-    // internal void Disable()
-    // {
-    //     GrabEnd(Vector3.zero, Vector3.zero);
-    // }
 }

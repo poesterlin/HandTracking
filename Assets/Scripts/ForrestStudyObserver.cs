@@ -28,6 +28,7 @@ public class ForrestStudyObserver : MonoBehaviour
     public OVRPlayerController player;
     public Mortar mortar;
     public Text canvasText;
+    public Vector3 playerStartPosition = new Vector3(-11.8f, 1f, 18.25f);
     public UnityEvent<GestureType> OnStateChange = new UnityEvent<GestureType>();
     private NetworkAdapter network;
     private Vector3 startPos;
@@ -44,7 +45,7 @@ public class ForrestStudyObserver : MonoBehaviour
 
         Shuffle(typeArray);
         Debug.Log(String.Join(", ", typeArray));
-        SetTeleporterState();
+        SetTeleporterState(typeArray[state]);
 
         startPos = player.transform.position;
         AddRecord(startPos);
@@ -52,25 +53,16 @@ public class ForrestStudyObserver : MonoBehaviour
 
     void Update()
     {
-        records.First().delayToNext += Time.deltaTime;
-    }
-
-    void UpdateState()
-    {
-        SendStats();
-        if (state + 1 == typeArray.Length)
+        if (records.Count > 0)
         {
-            StudyDone();
-            return;
+            records.First().delayToNext += Time.deltaTime;
         }
-        state += 1;
-        SetTeleporterState();
     }
-
     void AddRecord(Vector3 newPos)
     {
         if (records.Count > 0)
         {
+            SendStats();
             var prev = records.First();
             prev.distance = Vector3.Distance(prev.position, newPos);
         }
@@ -78,10 +70,24 @@ public class ForrestStudyObserver : MonoBehaviour
 
     }
 
-    void SetTeleporterState()
+    void UpdateState()
     {
-        OnStateChange.Invoke(typeArray[state]);
-        recognizer.AllowedType = typeArray[state];
+        // reset player position
+        player.transform.position = playerStartPosition;
+        player.transform.rotation = Quaternion.Euler(new Vector3(0, 0, 0));
+        if (state + 1 == typeArray.Length)
+        {
+            SetTeleporterState(GestureType.Default);
+            return;
+        }
+        state += 1;
+        SetTeleporterState(typeArray[state]);
+    }
+
+    void SetTeleporterState(GestureType type)
+    {
+        OnStateChange.Invoke(type);
+        recognizer.AllowedType = type;
     }
 
     void SendStats()
@@ -89,11 +95,6 @@ public class ForrestStudyObserver : MonoBehaviour
         var json = JsonUtility.ToJson(records.First());
         Debug.Log(json);
         StartCoroutine(network.Set("/stats/teleportRecord", "teleport", json));
-    }
-
-    void StudyDone()
-    {
-        Debug.Log("The study is completed");
     }
 
     void Shuffle<T>(T[] a)

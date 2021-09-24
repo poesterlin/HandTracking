@@ -39,7 +39,7 @@ public abstract class Teleporter
 
     public virtual void init(TrackingInfo track)
     {
-        updateState(TransporterState.ready);
+        updateState(TransporterState.avaliable);
     }
 
     public virtual void confirmTeleport()
@@ -80,7 +80,7 @@ public abstract class Teleporter
 
     internal void reset()
     {
-        updateState(TransporterState.ready);
+        updateState(TransporterState.none);
         setIndex(0);
         target = Vector3.zero;
         line.enabled = false;
@@ -190,7 +190,7 @@ public class TeleportProvider : MonoBehaviour
         method.update();
 
         // method has found a target
-        if (method.state == TransporterState.avaliable && lastTeleport.AddSeconds(teleportDelay).CompareTo(DateTime.Now) < 0)
+        if (method.state == TransporterState.confirmed && lastTeleport.AddSeconds(teleportDelay).CompareTo(DateTime.Now) < 0)
         {
             // block teleport call until current lock is released
             teleportBlock = true;
@@ -220,5 +220,14 @@ public class TeleportProvider : MonoBehaviour
             QuestDebug.Instance.Log("aborting teleport");
             OnAbort.Invoke();
         }
+    }
+
+    public TransporterState GetCurrentState()
+    {
+        if (method == null)
+        {
+            return TransporterState.none;
+        }
+        return method.state;
     }
 }

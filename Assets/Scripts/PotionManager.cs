@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PotionManager : MonoBehaviour
 {
-    public OVRPlayerController player;
+    public Camera player;
     public Mortar mortar;
     public Vector3[] positions = new Vector3[8];
     public GameObject potionPrefab;
@@ -23,6 +23,9 @@ public class PotionManager : MonoBehaviour
         script.mortar = mortar;
         script.player = player;
         script.parent = transform;
+        
+        var grabbable = flask.GetComponent<HandTrackingGrabbable>();
+        grabbable.mortar = mortar;
         count += 1;
     }
 

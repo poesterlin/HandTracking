@@ -20,6 +20,7 @@ public class QuestDebug : MonoBehaviour
         Instance = this;
         textEl = GetComponentInChildren<Text>();
         logs = new Queue<string>(QueueSize);
+        textEl.gameObject.SetActive(showLog);
     }
 
     public void Log(string msg)

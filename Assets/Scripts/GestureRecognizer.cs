@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -142,7 +139,7 @@ public class GestureRecognizer : MonoBehaviour
         StartCoroutine(network.GetGestures(this));
         QuestDebug.Instance.Log("waiting for gestures");
 
-        tpProv.OnAbort.AddListener(AbortCurrentGesture);
+        tpProv.OnAbort.AddListener(() => AbortCurrentGesture());
     }
 
     private void Update()
@@ -184,6 +181,11 @@ public class GestureRecognizer : MonoBehaviour
                 gesture.time = 0f;
                 return;
             }
+
+            if (tpProv.GetCurrentState() < TransporterState.avaliable)
+            {
+                AbortCurrentGesture(true);
+            }
         }
         else // gesture of different type
         {
@@ -217,9 +219,12 @@ public class GestureRecognizer : MonoBehaviour
 
         return list;
     }
-    private void AbortCurrentGesture()
+    private void AbortCurrentGesture(bool soft = false)
     {
-        previousGestureDetected.time = 0;
+        if (!soft)
+        {
+            previousGestureDetected.time = 0;
+        }
         if (previousGestureDetected.type == GestureType.Default) { return; }
 
         tpProv.abortTeleport();

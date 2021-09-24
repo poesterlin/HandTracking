@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Flask : MonoBehaviour
 {
-    public OVRPlayerController player;
+    public Camera player;
     public Vector3 hipsOffset = new Vector3(-0.3f, -0.6f, -0.3f);
     public bool wasGrabbed = false;
     public bool isGrabbed = false;

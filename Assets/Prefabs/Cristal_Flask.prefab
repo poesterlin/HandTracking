@@ -211,11 +211,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_allowOffhandGrab: 1
   m_snapPosition: 0
-  m_snapOrientation: 0
+  m_snapOrientation: 1
   m_snapOffset: {fileID: 0}
   m_grabPoints: []
   mortar: {fileID: 0}
-  distance: 5
+  distance: 1.7
   wasGrabbed:
     m_PersistentCalls:
       m_Calls:
@@ -265,6 +265,7 @@ MonoBehaviour:
   snapSpeed: 4
   mortar: {fileID: 0}
   body: {fileID: 1769816397973779837}
+  parent: {fileID: 0}
 --- !u!1 &1768493768418828976
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,9 +13,9 @@ public enum Hand
 public enum TransporterState
 {
     none,
-    ready,
-    avaliable,
     aborted,
+    avaliable,
+    confirmed,
 }
 
 public class TrackingInfo
@@ -100,7 +100,7 @@ public class FingerTeleport : Teleporter
             line.SetPosition(1, target);
 
             reticle.activate();
-            updateState(index == 1 ? TransporterState.avaliable : TransporterState.ready);
+            updateState(index == 1 ? TransporterState.confirmed : TransporterState.avaliable);
         }
         else
         {
@@ -158,18 +158,17 @@ public class PalmTeleport : Teleporter
                 line.SetPosition(1, target);
 
                 reticle.activate();
+                updateState(TransporterState.avaliable);
             }
             else
             {
                 base.update();
             }
-            updateState(TransporterState.ready);
-            return;
         }
 
         if (index == 1 && target != Vector3.zero)
         {
-            updateState(TransporterState.avaliable);
+            updateState(TransporterState.confirmed);
         }
     }
 }
@@ -210,7 +209,6 @@ public class TriangleTeleport : Teleporter
 
     public override void update()
     {
-
         if (index == 0)
         {
             Plane pL = updatePlane(Hand.left, new int[] { 19, 20, 3 });
@@ -228,18 +226,17 @@ public class TriangleTeleport : Teleporter
                 line.SetPosition(1, target);
 
                 reticle.activate();
+                updateState(TransporterState.avaliable);
             }
             else
             {
                 base.update();
             }
-            updateState(TransporterState.ready);
-            return;
         }
 
         if (index == 1 && target != Vector3.zero)
         {
-            updateState(TransporterState.avaliable);
+            updateState(TransporterState.confirmed);
         }
     }
 }
