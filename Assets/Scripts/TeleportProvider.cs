@@ -222,7 +222,7 @@ public class TeleportProvider : MonoBehaviour
         }
     }
 
-    public TransporterState GetCurrentState()
+    public TransporterState GetCurrentTeleporterState()
     {
         if (method == null)
         {

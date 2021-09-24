@@ -23,7 +23,7 @@ public class QuestDebug : MonoBehaviour
         textEl.gameObject.SetActive(showLog);
     }
 
-    public void Log(string msg)
+    public void Log(string msg, bool post = false)
     {
         logs.Enqueue(msg /* + ": " + DateTime.Now */);
         if (logs.Count > QueueSize)
@@ -32,7 +32,10 @@ public class QuestDebug : MonoBehaviour
         }
         textEl.text = "Debug Log:\n" + String.Join("\n", logs);
         Debug.Log(msg);
-        // StartCoroutine(postLog(msg));
+        if (post)
+        {
+            StartCoroutine(postLog(msg));
+        }
     }
 
     private IEnumerator postLog(string msg)

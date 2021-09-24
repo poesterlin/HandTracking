@@ -194,12 +194,13 @@ public class TriangleTeleport : Teleporter
         base.abort();
     }
 
-    private Plane updatePlane(Hand hand, int[] fingers)
+    private Plane updatePlane()
     {
-        Vector3 index = pos(track.getFinger(fingers[0], hand));
-        Vector3 thumb = pos(track.getFinger(fingers[1], hand));
-        Vector3 handBase = pos(track.getFinger(fingers[2], hand));
-        return new Plane(index, thumb, handBase);
+        Vector3 indexL = pos(track.getFinger(20, Hand.left));
+        Vector3 indexR = pos(track.getFinger(20, Hand.right));
+        Vector3 handBaseL = pos(track.getFinger(3, Hand.left));
+        Vector3 handBaseR = pos(track.getFinger(3, Hand.right));
+        return new Plane(handBaseL, handBaseR, Vector3.Lerp(indexL, indexR, 0.5f));
     }
 
     private Vector3 pos(Bone bone)
@@ -211,15 +212,13 @@ public class TriangleTeleport : Teleporter
     {
         if (index == 0)
         {
-            Plane pL = updatePlane(Hand.left, new int[] { 19, 20, 3 });
-            Plane pR = updatePlane(Hand.right, new int[] { 19, 3, 20 });
+            Plane p = updatePlane();
 
             Vector3 start = Vector3.Lerp(pos(track.getFinger(6, Hand.left)), pos(track.getFinger(6, Hand.right)), 0.5f);
 
-            if (Physics.Raycast(start, pR.normal, out RaycastHit hit, maxDistance, layerMask) && Physics.Raycast(start, pL.normal, out RaycastHit hit2, maxDistance, layerMask))
+            if (Physics.Raycast(start, p.normal, out RaycastHit hit, maxDistance, layerMask))
             {
-                Vector3 newTarget = Vector3.Lerp(hit.point, hit2.point, 0.5f);
-                UpdateTarget(newTarget);
+                UpdateTarget(hit.point);
 
                 line.enabled = true;
                 line.SetPosition(0, start);

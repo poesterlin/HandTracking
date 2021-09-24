@@ -182,9 +182,10 @@ public class GestureRecognizer : MonoBehaviour
                 return;
             }
 
-            if (tpProv.GetCurrentState() < TransporterState.avaliable)
+            if (tpProv.GetCurrentTeleporterState() < TransporterState.avaliable)
             {
-                AbortCurrentGesture(true);
+                AbortCurrentGesture();
+                return;
             }
         }
         else // gesture of different type
