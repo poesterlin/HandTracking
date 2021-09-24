@@ -1,36 +1,27 @@
+using OculusSampleFramework;
 using UnityEngine;
 
 public class Flask : MonoBehaviour
 {
     public OVRPlayerController player;
-    public HandTrackingGrabbable grabbable;
     public Vector3 hipsOffset = new Vector3(-0.3f, -0.6f, -0.3f);
     public bool wasGrabbed = false;
     public bool isGrabbed = false;
     public float snapSpeed;
-
     public Mortar mortar;
     public Rigidbody body;
-    public Vector3[] positions;
-    private int count = 0;
-
+    public Transform parent;
     void Reset()
     {
         wasGrabbed = false;
         isGrabbed = false;
-        // grabbable.Disable();
-        count += 1;
         body.velocity = Vector3.zero;
         body.angularVelocity = Vector3.zero;
-        // transform.localPosition = positions[count];
     }
 
     void Start()
     {
-        Shuffle(positions);
         mortar.OnPotion.AddListener(Reset);
-        grabbable.wasGrabbed.AddListener(Grab);
-        grabbable.wasReleased.AddListener(Released);
         Reset();
     }
 
@@ -58,6 +49,7 @@ public class Flask : MonoBehaviour
     public void Released()
     {
         isGrabbed = false;
+        transform.SetParent(parent);
     }
 
     void Shuffle<T>(T[] a)

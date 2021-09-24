@@ -1,39 +1,46 @@
 
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 using System.Text;
-
-
+using System.Collections.Generic;
+using System;
 
 public class QuestDebug : MonoBehaviour
 {
     public static QuestDebug Instance;
-    public Text logs;
+    public Text textEl;
+    public Queue<string> logs;
+    public int QueueSize = 30;
+    public bool showLog = false;
 
-    void Awake(){
+    void Awake()
+    {
         Instance = this;
+        textEl = GetComponentInChildren<Text>();
+        logs = new Queue<string>(QueueSize);
     }
 
-    // Update is called once per frame
     public void Log(string msg)
     {
-        // DebugUIBuilder.instance.Show();
-        // Instance.logs.text = msg;
+        logs.Enqueue(msg /* + ": " + DateTime.Now */);
+        if (logs.Count > QueueSize)
+        {
+            logs.Dequeue();
+        }
+        textEl.text = "Debug Log:\n" + String.Join("\n", logs);
         Debug.Log(msg);
-        StartCoroutine(postLog(msg));
+        // StartCoroutine(postLog(msg));
     }
 
-
-    private IEnumerator postLog(string msg){
+    private IEnumerator postLog(string msg)
+    {
         var request = new UnityWebRequest(PlayerPrefs.GetString("server") + "/logs", "POST");
 
         byte[] bodyRaw = Encoding.UTF8.GetBytes(msg);
-        request.uploadHandler = (UploadHandler) new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = (DownloadHandler) new DownloadHandlerBuffer();
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "text/plain");
         yield return request.SendWebRequest();
     }

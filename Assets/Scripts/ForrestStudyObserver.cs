@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 [Serializable]
@@ -27,6 +28,7 @@ public class ForrestStudyObserver : MonoBehaviour
     public OVRPlayerController player;
     public Mortar mortar;
     public Text canvasText;
+    public UnityEvent<GestureType> OnStateChange = new UnityEvent<GestureType>();
     private NetworkAdapter network;
     private Vector3 startPos;
     private int state = 0;
@@ -35,13 +37,13 @@ public class ForrestStudyObserver : MonoBehaviour
 
     void Start()
     {
-        var server = PlayerPrefs.GetString("server");
-        network = new NetworkAdapter(server);
+        network = new NetworkAdapter();
 
         mortar.OnPotion.AddListener(UpdateState);
         teleportProvider.OnTeleport.AddListener(AddRecord);
 
         Shuffle(typeArray);
+        Debug.Log(String.Join(", ", typeArray));
         SetTeleporterState();
 
         startPos = player.transform.position;
@@ -78,6 +80,7 @@ public class ForrestStudyObserver : MonoBehaviour
 
     void SetTeleporterState()
     {
+        OnStateChange.Invoke(typeArray[state]);
         recognizer.AllowedType = typeArray[state];
     }
 

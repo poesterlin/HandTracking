@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class PathIntegrationStudyObserver : MonoBehaviour
 {
     public TeleportProvider teleportProvider;
     public GestureRecognizer recognizer;
     public OVRPlayerController player;
+    public UnityEvent<GestureType> OnStateChange = new UnityEvent<GestureType>();
     private NetworkAdapter network;
     private Vector3 startPos;
 
@@ -13,8 +15,7 @@ public class PathIntegrationStudyObserver : MonoBehaviour
 
     void Start()
     {
-        var server = PlayerPrefs.GetString("server");
-        network = new NetworkAdapter(server);
+        network = new NetworkAdapter();
 
         teleportProvider.OnTeleport.AddListener(UpdateState);
         startPos = player.transform.position;
@@ -37,6 +38,7 @@ public class PathIntegrationStudyObserver : MonoBehaviour
 
     void SetTeleporterState()
     {
+        OnStateChange.Invoke(typeArray[state]);
         // recognizer.AllowedType = typeArray[state];
     }
 
@@ -45,8 +47,8 @@ public class PathIntegrationStudyObserver : MonoBehaviour
         StartCoroutine(network.Set("/stats/distance", "distance", distance, "type", (int)typeArray[state]));
     }
     void StudyDone()
-    { 
-        Debug.Log("The study is completed");
+    {
+        QuestDebug.Instance.Log("The study is completed");
     }
     void Shuffle<T>(T[] a)
     {

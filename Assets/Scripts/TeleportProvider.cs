@@ -75,7 +75,7 @@ public abstract class Teleporter
     public void setIndex(int n)
     {
         index = n;
-        // QuestDebug.Instance.Log("new index: " + index);
+        QuestDebug.Instance.Log("new index: " + index);
     }
 
     internal void reset()
@@ -85,6 +85,19 @@ public abstract class Teleporter
         target = Vector3.zero;
         line.enabled = false;
         reticle.deactivate();
+    }
+
+    internal void UpdateTarget(Vector3 newTarget, float smoothing = 0.1f)
+    {
+        if (target == Vector3.zero)
+        {
+            target = newTarget;
+        }
+        else
+        {
+            target = Vector3.Lerp(target, newTarget, smoothing);
+        }
+        reticle.transform.position = target;
     }
 }
 
@@ -100,6 +113,7 @@ public class TeleportProvider : MonoBehaviour
     public double teleportDelay = 0.7;
 
     public UnityEvent<Vector3> OnTeleport = new UnityEvent<Vector3>();
+    public UnityEvent OnAbort = new UnityEvent();
 
     public bool updateMapStat = true;
     private bool teleportBlock;
@@ -110,7 +124,7 @@ public class TeleportProvider : MonoBehaviour
 
     public void Start()
     {
-        network = new NetworkAdapter(PlayerPrefs.GetString("server"));
+        network = new NetworkAdapter();
     }
 
     public void selectMethod(GestureType gesture)
@@ -162,7 +176,7 @@ public class TeleportProvider : MonoBehaviour
 
     public bool updateAndTryTeleport(int index)
     {
-        if (method == null && !teleportBlock)
+        if (method == null || teleportBlock)
         {
             return false;
         }
@@ -204,6 +218,7 @@ public class TeleportProvider : MonoBehaviour
             method.abort();
             method = null;
             QuestDebug.Instance.Log("aborting teleport");
+            OnAbort.Invoke();
         }
     }
 }

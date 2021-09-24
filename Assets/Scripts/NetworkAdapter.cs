@@ -10,9 +10,9 @@ public class NetworkAdapter
 {
     string ip;
 
-    public NetworkAdapter(string address)
+    public NetworkAdapter()
     {
-        ip = address;
+        ip = PlayerPrefs.GetString("server");
     }
 
     public IEnumerator Set(string endpoint, params object[] properties)
@@ -69,7 +69,7 @@ public class NetworkAdapter
         Debug.Log("Status Code: " + request.responseCode);
     }
 
-    public IEnumerator Get(GestureRecognizer inst)
+    public IEnumerator GetGestures(GestureRecognizer inst)
     {
         using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture"))
         {

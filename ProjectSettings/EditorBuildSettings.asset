@@ -6,11 +6,11 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/PathIntegration.unity
-    guid: 8ed9c652439b60948b560025cf0d5e18
-  - enabled: 1
     path: Assets/Scenes/Forrest.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/PathIntegration.unity
+    guid: 8ed9c652439b60948b560025cf0d5e18
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 318a7112441b935439a9daae2c71f266, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 58d2ae8284721584aa7956fc576a19cf, type: 2}

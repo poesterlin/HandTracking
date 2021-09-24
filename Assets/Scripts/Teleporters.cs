@@ -93,15 +93,13 @@ public class FingerTeleport : Teleporter
 
         if (Physics.Raycast(start, anchorF.Finger.Transform.TransformDirection(Vector3.right), out RaycastHit hit, maxDistance, layerMask))
         {
-            target = hit.point;
+            UpdateTarget(hit.point, 0.3f);
 
             line.enabled = true;
             line.SetPosition(0, start);
             line.SetPosition(1, target);
 
             reticle.activate();
-            reticle.transform.position = target;
-
             updateState(index == 1 ? TransporterState.avaliable : TransporterState.ready);
         }
         else
@@ -141,7 +139,7 @@ public class PalmTeleport : Teleporter
 
     private Vector3 pos(Bone bone)
     {
-        return bone.getTransform().position;
+        return bone.GetTransform().position;
     }
 
     public override void update()
@@ -153,14 +151,13 @@ public class PalmTeleport : Teleporter
         {
             if (Physics.Raycast(start, pR.normal, out RaycastHit hit, maxDistance, layerMask))
             {
-                target = hit.point;
+                UpdateTarget(hit.point);
 
                 line.enabled = true;
                 line.SetPosition(0, start);
                 line.SetPosition(1, target);
 
                 reticle.activate();
-                reticle.transform.position = target;
             }
             else
             {
@@ -208,7 +205,7 @@ public class TriangleTeleport : Teleporter
 
     private Vector3 pos(Bone bone)
     {
-        return bone.getTransform().position;
+        return bone.GetTransform().position;
     }
 
     public override void update()
@@ -223,14 +220,14 @@ public class TriangleTeleport : Teleporter
 
             if (Physics.Raycast(start, pR.normal, out RaycastHit hit, maxDistance, layerMask) && Physics.Raycast(start, pL.normal, out RaycastHit hit2, maxDistance, layerMask))
             {
-                target = Vector3.Lerp(hit.point, hit2.point, 0.5f);
+                Vector3 newTarget = Vector3.Lerp(hit.point, hit2.point, 0.5f);
+                UpdateTarget(newTarget);
 
                 line.enabled = true;
                 line.SetPosition(0, start);
                 line.SetPosition(1, target);
 
                 reticle.activate();
-                reticle.transform.position = target;
             }
             else
             {
@@ -243,70 +240,6 @@ public class TriangleTeleport : Teleporter
         if (index == 1 && target != Vector3.zero)
         {
             updateState(TransporterState.avaliable);
-        }
-    }
-}
-
-public class PortalTeleport : Teleporter
-{
-    TrackingInfo track;
-    GameObject portalInstance;
-    PortalManager portalPrefab;
-
-    public PortalTeleport(float distance, LineRenderer line, GameObject targetReticle, GameObject portal) : base(distance, line, targetReticle)
-    {
-        portalInstance = UnityEngine.Object.Instantiate(portal, Vector3.zero, Quaternion.identity);
-        portalPrefab = portalInstance.GetComponent<PortalManager>();
-        portalPrefab.onTeleportEnter.AddListener(portalActivate);
-        maxIndex = 2;
-    }
-
-    public override void init(TrackingInfo trackInfo)
-    {
-        track = trackInfo;
-        base.init(trackInfo);
-    }
-
-    public override void abort()
-    {
-        portalPrefab.onTeleportEnter.RemoveListener(portalActivate);
-        portalPrefab.destroyPortal();
-        base.abort();
-    }
-
-    public void portalActivate()
-    {
-        if (index == 2)
-        {
-            updateState(TransporterState.avaliable);
-            QuestDebug.Instance.Log("portal hit");
-        }
-    }
-
-    public override void update()
-    {
-        Camera head = track.getHeadsetCamera();
-        // debugPosition(head.transform.position + Vector3.forward * 1f);
-
-        // RaycastHit HitInfo;
-        Ray RayOrigin = head.ViewportPointToRay(new Vector3(0, 0, 0));
-        RaycastHit hit;
-        if (Physics.Raycast(RayOrigin, out hit, maxDistance /*, layerMask */))
-        {
-            target = hit.point + Vector3.back * 2f + Vector3.up * 1.5f;
-            if (!portalPrefab.active)
-            {
-                portalPrefab.initPortal(target);
-            }
-            else
-            {
-                // portalInstance.transform.position = target;
-            }
-        }
-        else
-        {
-            portalPrefab.destroyPortal();
-            base.update();
         }
     }
 }

@@ -9,13 +9,17 @@ public class Mortar : MonoBehaviour
     public AudioSource audio1;
     public AudioSource audio2;
     public UnityEvent OnPotion = new UnityEvent();
-
-
     public float dist = 5f;
 
     void Start()
     {
          m_Animator = gameObject.GetComponent<Animator>();
+    }
+
+     void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawSphere(transform.position, dist);
     }
 
 
