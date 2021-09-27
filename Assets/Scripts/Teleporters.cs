@@ -54,6 +54,11 @@ public class TrackingInfo
         return getLeftHand();
     }
 
+    public Hand GetRecognizedHand()
+    {
+        return recognizedHand;
+    }
+
     public Camera getHeadsetCamera()
     {
         return headset;
@@ -131,10 +136,14 @@ public class PalmTeleport : Teleporter
 
     private Plane updatePlane(Hand hand)
     {
-        Vector3 indexF = pos(track.getFinger(20, hand));
-        Vector3 handBase = pos(track.getFinger(1, hand));
-        Vector3 ringF = pos(track.getFinger(23, hand));
-        return new Plane(indexF, handBase, ringF);
+        Vector3 indexF = pos(track.getFinger(20));
+        Vector3 handBase = pos(track.getFinger(1));
+        Vector3 ringF = pos(track.getFinger(23));
+        if (hand == Hand.left)
+        {
+            return new Plane(indexF, handBase, ringF);
+        }
+        return new Plane(ringF, handBase, indexF);
     }
 
     private Vector3 pos(Bone bone)
@@ -144,7 +153,7 @@ public class PalmTeleport : Teleporter
 
     public override void update()
     {
-        Plane pR = updatePlane(Hand.right);
+        Plane pR = updatePlane(track.GetRecognizedHand());
         Vector3 start = pos(track.getFinger(9));
 
         if (index == 0)
