@@ -40,8 +40,8 @@ public class ForrestStudyObserver : MonoBehaviour
     {
         network = new NetworkAdapter();
 
-        mortar.OnPotion.AddListener(UpdateState);
-        teleportProvider.OnTeleport.AddListener(AddRecord);
+        // mortar.OnPotion.AddListener(UpdateState);
+        // teleportProvider.OnTeleport.AddListener(AddRecord);
 
         Shuffle(typeArray);
         Debug.Log(String.Join(", ", typeArray));
@@ -86,8 +86,8 @@ public class ForrestStudyObserver : MonoBehaviour
 
     void SetTeleporterState(GestureType type)
     {
-        OnStateChange.Invoke(type);
-        recognizer.AllowedType = type;
+        // OnStateChange.Invoke(type);
+        // recognizer.AllowedType = type;
     }
 
     void SendStats()

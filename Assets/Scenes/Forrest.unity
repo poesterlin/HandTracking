@@ -13562,7 +13562,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 2.3509887e-38, z: 2.7107536e-20, w: 7.737127e+25}
+  m_BoundingSphereOverride: {x: 4.5904e-41, y: 3.8923052e-35, z: 4.5904e-41, w: 9.403955e-38}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -30210,7 +30210,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1765641308784320048, guid: 9c44856b3522bc8488ebaa8d0b74e074, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 33.217
+      value: 29.73
       objectReference: {fileID: 0}
     - target: {fileID: 1765641308784320048, guid: 9c44856b3522bc8488ebaa8d0b74e074, type: 3}
       propertyPath: m_LocalRotation.w
@@ -30246,7 +30246,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1768375428756687640, guid: 9c44856b3522bc8488ebaa8d0b74e074, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1769816397973779836, guid: 9c44856b3522bc8488ebaa8d0b74e074, type: 3}
       propertyPath: mortar
@@ -32900,7 +32900,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   textEl: {fileID: 0}
   QueueSize: 30
-  showLog: 1
+  showLog: 0
 --- !u!1001 &2081999284
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33463,6 +33463,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1409006385}
     m_Modifications:
+    - target: {fileID: 6248442800853461298, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6248442800853461302, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
       propertyPath: m_Camera
       value: 

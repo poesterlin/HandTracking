@@ -136,7 +136,7 @@ public class GestureRecognizer : MonoBehaviour
         getBones(fingerBones, skeletonLeft, Hand.left);
 
         network = new NetworkAdapter();
-        StartCoroutine(network.GetGestures(this));
+        network.GetGestures(this);
         QuestDebug.Instance.Log("waiting for gestures");
 
         tpProv.OnAbort.AddListener(() => AbortCurrentGesture());
@@ -254,7 +254,7 @@ public class GestureRecognizer : MonoBehaviour
 
     private void ReloadGestures()
     {
-        StartCoroutine(network.GetGestures(this));
+        network.GetGestures(this);
         QuestDebug.Instance.Log("reloaded");
     }
 
