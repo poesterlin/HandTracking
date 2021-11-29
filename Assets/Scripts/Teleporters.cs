@@ -143,7 +143,7 @@ public class PalmTeleport : Teleporter
         {
             return new Plane(indexF, handBase, ringF);
         }
-        return new Plane(ringF, handBase, indexF);
+        return new Plane(ringF, indexF, handBase);
     }
 
     private Vector3 pos(Bone bone)
