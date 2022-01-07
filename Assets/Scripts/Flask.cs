@@ -11,6 +11,8 @@ public class Flask : MonoBehaviour
     public Mortar mortar;
     public Rigidbody body;
     public Transform parent;
+    public OVRCameraRig cameraRig;
+    public Vector4 t = new Vector4(1, 1, 1, 1);
     void Reset()
     {
         wasGrabbed = false;
@@ -31,8 +33,9 @@ public class Flask : MonoBehaviour
         {
             body.useGravity = false;
             var step = snapSpeed * Time.deltaTime;
-            transform.position = Vector3.MoveTowards(transform.position, player.transform.position + hipsOffset, step);
-            transform.rotation = Quaternion.identity;
+            transform.position = Vector3.MoveTowards(transform.position, cameraRig.centerEyeAnchor.position + hipsOffset, step);
+            var quat = cameraRig.centerEyeAnchor.rotation;
+            transform.rotation = quat; // new Quaternion(quat.x * t.x, quat.y * t.z, quat.z * t.z, quat.w * t.w);
         }
         else
         {
@@ -50,16 +53,5 @@ public class Flask : MonoBehaviour
     {
         isGrabbed = false;
         transform.SetParent(parent);
-    }
-
-    void Shuffle<T>(T[] a)
-    {
-        for (int i = a.Length - 1; i > 0; i--)
-        {
-            int rnd = Random.Range(0, i);
-            T temp = a[i];
-            a[i] = a[rnd];
-            a[rnd] = temp;
-        }
     }
 }

@@ -125,6 +125,8 @@ public class GestureRecognizer : MonoBehaviour
         set { _allowedType = value; }
     }
 
+    public bool disabled;
+
     private static Gesture defaultGesture = new Gesture("default");
     private Gesture previousGestureDetected = defaultGesture;
     private NetworkAdapter network;
@@ -137,7 +139,7 @@ public class GestureRecognizer : MonoBehaviour
 
         network = new NetworkAdapter();
         StartCoroutine(network.GetGestures(this));
-        QuestDebug.Instance.Log("waiting for gestures");
+        QuestDebug.Instance.Log("waiting for gestures", true);
 
         tpProv.OnAbort.AddListener(() => AbortCurrentGesture());
     }
@@ -149,33 +151,48 @@ public class GestureRecognizer : MonoBehaviour
         // at least one hand has to be recognized with a high confidence
         if (!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence)
         {
-            AbortCurrentGesture();
+            AbortCurrentGesture(true);
             return;
         }
 
-        // save gesture 
-        // TODO: disable in study
-        if (OVRInput.GetDown(OVRInput.Button.Start))
+        // // save gesture 
+        // // TODO: disable in study
+        // if (OVRInput.GetDown(OVRInput.Button.Start))
+        // {
+        //     QuestDebug.Instance.Log("make a gesture to save in 2 seconds", true);
+        //     Invoke("SaveAsGesture", 2);
+        //     return;
+        // }
+
+        // abort if the teleport method is in an error state
+        if (tpProv.GetCurrentTeleporterState() == TransporterState.aborted)
         {
-            QuestDebug.Instance.Log("make a gesture to save in 2 seconds");
-            Invoke("SaveAsGesture", 2);
-            return;
+            AbortCurrentGesture();
         }
 
         // try to recognize the current gesture
         Gesture gesture = Recognize();
+
+
+        // soft abort if default gesture is newly recognized
+        if (tpProv.IsMethodSet() && gesture.type == defaultGesture.type && previousGestureDetected.type != gesture.type)
+        {
+            QuestDebug.Instance.Log("abort on default", true);
+            AbortCurrentGesture(true);
+            return;
+        }
 
         // gesture usable
         // is gesture of the same type
         if (previousGestureDetected.type == gesture.type)
         {
             // set gesture index
-            bool teleportExecuted = tpProv.updateAndTryTeleport(gesture.gestureIndex);
+            bool teleportExecuted = tpProv.UpdateAndTryTeleport(gesture.gestureIndex);
 
             // reset to first method after teleport
             if (teleportExecuted)
             {
-                QuestDebug.Instance.Log("teleport confirmed");
+                QuestDebug.Instance.Log("teleport confirmed", true);
                 previousGestureDetected = SavedGestures.Find((g) => g.type == gesture.type && g.gestureIndex == 0);
                 previousGestureDetected.time = timeDelay;
                 gesture.time = 0f;
@@ -200,11 +217,11 @@ public class GestureRecognizer : MonoBehaviour
             gesture.time = timeDelay;
 
             // select method
-            tpProv.selectMethod(gesture.type);
+            tpProv.SelectMethod(gesture.type);
 
             // setup tracking information for the teleporters
             var info = new TrackingInfo(CenterEye, skeletonRight, skeletonLeft, fingerBones, gesture.ignoreLeft ? Hand.right : Hand.left);
-            tpProv.initTeleport(info);
+            tpProv.InitTeleport(info);
         }
         previousGestureDetected = gesture;
     }
@@ -228,7 +245,7 @@ public class GestureRecognizer : MonoBehaviour
         }
         if (previousGestureDetected.type == GestureType.Default) { return; }
 
-        tpProv.abortTeleport();
+        tpProv.AbortTeleport();
         previousGestureDetected = defaultGesture;
     }
 
@@ -248,20 +265,25 @@ public class GestureRecognizer : MonoBehaviour
         SavedGestures.Add(g);
 
         StartCoroutine(network.Post(g.ToJson()));
-        QuestDebug.Instance.Log("new gesture saved");
+        QuestDebug.Instance.Log("new gesture saved", true);
         Invoke("ReloadGestures", 1);
     }
 
     private void ReloadGestures()
     {
         StartCoroutine(network.GetGestures(this));
-        QuestDebug.Instance.Log("reloaded");
+        QuestDebug.Instance.Log("reloaded", true);
     }
 
     private Gesture Recognize()
     {
         float minSumDistances = Mathf.Infinity;
         Gesture bestMatch = defaultGesture;
+
+        if (disabled)
+        {
+            return bestMatch;
+        }
 
         // filter by type if only one type is allowed
         var filtered = SavedGestures.FindAll((g) =>

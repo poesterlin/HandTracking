@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-public class PathIntegrationStudyObserver : MonoBehaviour
+public class PathIntegrationStudyObserver : StudyObserver
 {
     public TeleportProvider teleportProvider;
     public GestureRecognizer recognizer;
@@ -9,9 +9,10 @@ public class PathIntegrationStudyObserver : MonoBehaviour
     public UnityEvent<GestureType> OnStateChange = new UnityEvent<GestureType>();
     private NetworkAdapter network;
     private Vector3 startPos;
+    private bool isInBetween = false;
 
     private int state = 0;
-    private GestureType[] typeArray = { GestureType.FingerGesture, GestureType.PalmGesture, GestureType.TriangleGesture };
+    private GestureType[] typeArray;
 
     void Start()
     {
@@ -19,12 +20,25 @@ public class PathIntegrationStudyObserver : MonoBehaviour
 
         teleportProvider.OnTeleport.AddListener(UpdateState);
         startPos = player.transform.position;
-        Shuffle(typeArray);
+        StartCoroutine(network.GetOrder(this));
+    }
+
+    public override void SetOrder(GestureType[] order)
+    {
+        typeArray = order;
         SetTeleporterState();
+        SendDistance(0f);
     }
 
     void UpdateState(Vector3 newPos)
     {
+        if (!isInBetween)
+        {
+            isInBetween = true;
+            return;
+        }
+
+        isInBetween = false;
         SendDistance(Vector3.Distance(startPos, newPos));
         if (state + 1 == typeArray.Length)
         {
@@ -39,13 +53,14 @@ public class PathIntegrationStudyObserver : MonoBehaviour
     void SetTeleporterState()
     {
         OnStateChange.Invoke(typeArray[state]);
-        // recognizer.AllowedType = typeArray[state];
+        recognizer.AllowedType = typeArray[state];
     }
 
     void SendDistance(float distance)
     {
         StartCoroutine(network.Set("/stats/distance", "distance", distance, "type", (int)typeArray[state]));
     }
+
     void StudyDone()
     {
         QuestDebug.Instance.Log("The study is completed");

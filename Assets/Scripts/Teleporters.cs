@@ -73,7 +73,7 @@ public class FingerTeleport : Teleporter
     private Bone anchorF;
     private OVRSkeleton anchorH;
 
-    public FingerTeleport(float distance, LineRenderer line, GameObject targetReticle) : base(distance, line, targetReticle)
+    public FingerTeleport(float distance, ProjectileSimulator sim, LineRenderer line, GameObject targetReticle) : base(distance, sim, line, targetReticle)
     {
         maxIndex = 1;
     }
@@ -95,21 +95,36 @@ public class FingerTeleport : Teleporter
     public override void update()
     {
         Vector3 start = anchorH.transform.position;
-
-        if (Physics.Raycast(start, anchorF.Finger.Transform.TransformDirection(Vector3.right), out RaycastHit hit, maxDistance, layerMask))
+        Vector3 dir = anchorF.Finger.Transform.TransformDirection(Vector3.right);
+        if (index == 0)
         {
-            UpdateTarget(hit.point, 0.3f);
+            if (Physics.Raycast(start, dir, out RaycastHit hit, maxDistance, layerMask))
+            {
+                UpdateTarget(hit.point, 0.3f);
 
-            line.enabled = true;
-            line.SetPosition(0, start);
-            line.SetPosition(1, target);
+                line.enabled = true;
+                line.positionCount = 2;
+                line.SetPosition(0, start);
+                line.SetPosition(1, target);
 
-            reticle.activate();
-            updateState(index == 1 ? TransporterState.confirmed : TransporterState.avaliable);
+                reticle.activate();
+                updateState(TransporterState.avaliable);
+            }
+            else if (SimulateProjectile(start, dir))
+            {
+                line.enabled = true;
+                reticle.activate();
+                updateState(TransporterState.avaliable);
+            }
+            else
+            {
+                base.update();
+            }
         }
-        else
+
+        if (index == 1 && target != Vector3.zero)
         {
-            base.update();
+            updateState(TransporterState.confirmed);
         }
     }
 }
@@ -118,7 +133,8 @@ public class PalmTeleport : Teleporter
 {
     TrackingInfo track;
 
-    public PalmTeleport(float distance, LineRenderer line, GameObject targetReticle) : base(distance, line, targetReticle)
+    public PalmTeleport(float distance, ProjectileSimulator sim, LineRenderer line, GameObject targetReticle) : base(distance, sim, line, targetReticle)
+
     {
         maxIndex = 1;
     }
@@ -163,9 +179,16 @@ public class PalmTeleport : Teleporter
                 UpdateTarget(hit.point);
 
                 line.enabled = true;
+                line.positionCount = 2;
                 line.SetPosition(0, start);
                 line.SetPosition(1, target);
 
+                reticle.activate();
+                updateState(TransporterState.avaliable);
+            }
+            else if (SimulateProjectile(start, pR.normal))
+            {
+                line.enabled = true;
                 reticle.activate();
                 updateState(TransporterState.avaliable);
             }
@@ -187,7 +210,7 @@ public class TriangleTeleport : Teleporter
 {
     TrackingInfo track;
 
-    public TriangleTeleport(float distance, LineRenderer line, GameObject targetReticle) : base(distance, line, targetReticle)
+    public TriangleTeleport(float distance, ProjectileSimulator sim, LineRenderer line, GameObject targetReticle) : base(distance, sim, line, targetReticle)
     {
         maxIndex = 1;
     }
@@ -230,9 +253,16 @@ public class TriangleTeleport : Teleporter
                 UpdateTarget(hit.point);
 
                 line.enabled = true;
+                line.positionCount = 2;
                 line.SetPosition(0, start);
                 line.SetPosition(1, target);
 
+                reticle.activate();
+                updateState(TransporterState.avaliable);
+            }
+            else if (SimulateProjectile(start, p.normal))
+            {
+                line.enabled = true;
                 reticle.activate();
                 updateState(TransporterState.avaliable);
             }

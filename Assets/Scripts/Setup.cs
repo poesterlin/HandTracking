@@ -17,7 +17,8 @@ public class Setup : MonoBehaviour
         Debug.Log("Server set to: " + server);
     }
 
-    void Start(){
+    void Start()
+    {
         Awake();
     }
 }

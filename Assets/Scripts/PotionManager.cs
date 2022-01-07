@@ -9,6 +9,10 @@ public class PotionManager : MonoBehaviour
     public Vector3[] positions = new Vector3[8];
     public GameObject potionPrefab;
 
+    public ForrestStudyObserver observer;
+    public OVRCameraRig cameraRig;
+
+
     private int count = 0;
 
     void Start()
@@ -23,9 +27,14 @@ public class PotionManager : MonoBehaviour
         script.mortar = mortar;
         script.player = player;
         script.parent = transform;
+        script.cameraRig = cameraRig;
+        script.snapSpeed = 8f;
         
         var grabbable = flask.GetComponent<HandTrackingGrabbable>();
         grabbable.mortar = mortar;
+
+        grabbable.wasGrabbed.AddListener(observer.DisableTeleport);
+        grabbable.wasReleased.AddListener(observer.EnableTeleport);
         count += 1;
     }
 

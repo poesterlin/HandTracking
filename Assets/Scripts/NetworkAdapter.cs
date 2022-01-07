@@ -71,6 +71,7 @@ public class NetworkAdapter
 
     public IEnumerator GetGestures(GestureRecognizer inst)
     {
+        QuestDebug.Instance.Log(ip);
         using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture"))
         {
             // Request and wait for the desired page.
@@ -78,12 +79,28 @@ public class NetworkAdapter
 
             if (webRequest.result == UnityWebRequest.Result.ConnectionError)
             {
-                Debug.Log("Error: " + webRequest.error);
+                QuestDebug.Instance.Log(webRequest.error, true);
             }
 
             GestureList list = Gesture.CreateFromJSON(webRequest.downloadHandler.text);
             inst.SavedGestures = new List<Gesture>(list.Gestures);
-            QuestDebug.Instance.Log("downloaded " + inst.SavedGestures.Count + " gestures");
+            QuestDebug.Instance.Log("downloaded " + inst.SavedGestures.Count + " gestures", true);
+        }
+    }
+
+    public IEnumerator GetOrder(StudyObserver inst)
+    {
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/stats/cb-order"))
+        {
+            yield return webRequest.SendWebRequest();
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                QuestDebug.Instance.Log(webRequest.error, true);
+            }
+
+            CounterBallanceRecord counterballance = CounterBallanceRecord.CreateFromJSON(webRequest.downloadHandler.text);
+            inst.SetOrder(counterballance.Order);
+            QuestDebug.Instance.Log("teleport order: " + String.Join(", ", counterballance.Order), true);
         }
     }
 }
