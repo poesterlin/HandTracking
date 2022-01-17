@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -20,6 +22,7 @@ public abstract class Teleporter
     protected int index = 0;
     protected int maxIndex = 0;
     protected ProjectileSimulator simulator;
+    protected List<GameObject> oldReticles = new List<GameObject>();
 
     public Teleporter(float distance, ProjectileSimulator sim, LineRenderer lineRenderer, GameObject targetReticle) : base()
     {
@@ -33,22 +36,26 @@ public abstract class Teleporter
         reticle.deactivate();
     }
 
+    ~Teleporter()
+    {
+        abort();
+    }
+
     public virtual void abort()
     {
         reset();
         UnityEngine.Object.Destroy(reticleInstance);
+        oldReticles.ForEach((r) =>
+        {
+            UnityEngine.Object.Destroy(r);
+        });
         updateState(TransporterState.aborted);
     }
 
     public virtual void init(TrackingInfo track)
     {
-        updateState(TransporterState.avaliable);
+        updateState(TransporterState.none);
     }
-
-    // public virtual void confirmTeleport()
-    // {
-    //     onTeleport.Invoke();
-    // }
 
     public void debugPosition(Vector3 pos)
     {
@@ -104,12 +111,18 @@ public abstract class Teleporter
         QuestDebug.Instance.Log("new index: " + index);
     }
 
-    internal void reset()
+    internal void reset(bool keepReticle = false)
     {
         updateState(TransporterState.none);
         setIndex(0);
         target = Vector3.zero;
         line.enabled = false;
+        if (keepReticle)
+        {
+            oldReticles.Add(reticleInstance);
+            reticleInstance = UnityEngine.Object.Instantiate(reticleInstance, Vector3.zero, Quaternion.identity);
+            reticle = reticleInstance.GetComponent<Reticle>();
+        }
         reticle.deactivate();
     }
 
@@ -132,6 +145,7 @@ public class TeleportProvider : MonoBehaviour
     public GameObject reticle;
     public ProjectileSimulator sim;
     public OVRPlayerController player;
+    public GameObject Camera;
     public CharacterController character;
     public LineRenderer line;
     private Teleporter method;
@@ -141,17 +155,14 @@ public class TeleportProvider : MonoBehaviour
     public UnityEvent<Vector3> OnTeleport = new UnityEvent<Vector3>();
     public UnityEvent OnAbort = new UnityEvent();
 
-    public bool updateMapStat = true;
+    public bool keepReticle = false;
+
     private bool teleportBlock;
 
-    private NetworkAdapter network;
     private Vector3 target = Vector3.zero;
     private DateTime lastTeleport = DateTime.Now;
 
-    public void Start()
-    {
-        network = new NetworkAdapter();
-    }
+    public float minDistance = 0f;
 
     public void SelectMethod(GestureType gesture)
     {
@@ -181,28 +192,21 @@ public class TeleportProvider : MonoBehaviour
         }
     }
 
-    private void ConfirmTeleport()
+    private IEnumerator ConfirmTeleport()
     {
-        if (!teleportBlock)
+        if (teleportBlock)
         {
-            return;
-        }
-        else
-        {
-            QuestDebug.Instance.Log("wrong state: ConfirmTeleport", true);
-        }
-        player.transform.position = new Vector3(target.x, character.height / 2.0f, target.z);
-        player.Teleported = true;
-        player.enabled = true;
-        // character.enabled = true;
+            yield return new WaitForSeconds(0.1f);
+            var offset = Vector3.Scale(Camera.transform.position - player.transform.position, new Vector3(1, 0, 1));
+            player.transform.position = new Vector3(target.x, character.height / 2.0f, target.z) - offset;
+            player.Teleported = true;
+            player.enabled = true;
+            // character.enabled = true;
 
-        teleportBlock = false;
-        if (updateMapStat)
-        {
-            StartCoroutine(network.Set("/stats/position", "x", target.x, "y", target.z));
+            teleportBlock = false;
+            lastTeleport = DateTime.Now;
+            OnTeleport.Invoke(player.transform.position);
         }
-        lastTeleport = DateTime.Now;
-        OnTeleport.Invoke(player.transform.position);
     }
 
     public bool UpdateAndTryTeleport(int index)
@@ -211,25 +215,17 @@ public class TeleportProvider : MonoBehaviour
         {
             return false;
         }
-        else
-        {
-            QuestDebug.Instance.Log("wrong state: UpdateAndTryTeleport", true);
-        }
 
         if (method.hasIndex(index))
         {
             method.setIndex(index);
-        }
-        else
-        {
-            QuestDebug.Instance.Log("wrong state2: UpdateAndTryTeleport", true);
         }
 
         // update method to calculate target and set state
         method.update();
 
         // method has found a target
-        if (method.state == TransporterState.confirmed && lastTeleport.AddSeconds(teleportDelay).CompareTo(DateTime.Now) < 0)
+        if (method.state == TransporterState.confirmed && lastTeleport.AddSeconds(teleportDelay).CompareTo(DateTime.Now) < 0 && (minDistance == 0f || Vector3.Distance(method.target, player.transform.position) > minDistance))
         {
             // block teleport call until current lock is released
             teleportBlock = true;
@@ -241,14 +237,14 @@ public class TeleportProvider : MonoBehaviour
             target = method.target;
 
             // reset method to ready state
-            method.reset();
+            method.reset(keepReticle);
 
-            Invoke("confirmTeleport", 0.1f);
+            StartCoroutine(ConfirmTeleport());
             return true;
         }
         else
         {
-            QuestDebug.Instance.Log("wrong state3: UpdateAndTryTeleport", true);
+            QuestDebug.Instance.Log("teleport not executed");
         }
 
         return false;
@@ -262,10 +258,6 @@ public class TeleportProvider : MonoBehaviour
             method = null;
             QuestDebug.Instance.Log("aborting teleport", true);
             OnAbort.Invoke();
-        }
-        else
-        {
-            QuestDebug.Instance.Log("wrong state: AbortTeleport", true);
         }
     }
 

@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05d394ae2a81edd4cbc3c51917e766e3, type: 3}
   m_Name: OculusProjectConfig
   m_EditorClassIdentifier: 
-  targetDeviceTypes: 0100000002000000
+  targetDeviceTypes: 02000000
   allowOptional3DofHeadTracking: 0
   handTrackingSupport: 2
-  handTrackingFrequency: 1
+  handTrackingFrequency: 2
   disableBackups: 1
   enableNSCConfig: 1
   securityXmlPath: 
-  skipUnneededShaders: 0
+  skipUnneededShaders: 1
   focusAware: 1
   requiresSystemKeyboard: 0
   systemSplashScreen: {fileID: 0}

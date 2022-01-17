@@ -140,7 +140,7 @@ namespace OculusSampleFramework
 
             GrabVolumeEnable(false);
 
-            if (closestGrabbable != null)
+            if (closestGrabbable != null && closestGrabbableCollider != null && m_gripTransform != null && m_gripTransform.position != null)
             {
                 if (closestGrabbable.isGrabbed)
                 {

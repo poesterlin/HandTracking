@@ -73,23 +73,17 @@ public class ForrestStudyObserver : StudyObserver
         {
             records.Last().delayToNext += Time.deltaTime;
         }
-
-        if (OVRInput.GetDown(OVRInput.Button.Start))
-        {
-            SceneManager.LoadScene("PathIntegration");
-        }
     }
 
     void AddRecord(Vector3 newPos)
     {
         if (records.Count > 0)
         {
-            SendStats();
             var prev = records.Last();
             prev.distance = Vector3.Distance(prev.position, newPos);
+            SendStats();
         }
         records.Add(new TeleportRecord(typeArray[state], newPos));
-        QuestDebug.Instance.Log(String.Join(",", records.ConvertAll((r) => "dist: " + r.distance + " delay: " + r.delayToNext)), true);
     }
 
     public void EnableTeleport()
@@ -107,8 +101,7 @@ public class ForrestStudyObserver : StudyObserver
         Invoke("ResetPosition", 1.5f);
         if (state + 1 == typeArray.Length)
         {
-            SetTeleporterState(GestureType.Default);
-            StartCoroutine(network.Set("/stats/cb-order"));
+            SceneManager.LoadScene("PathIntegration");
             return;
         }
         state += 1;
@@ -131,7 +124,8 @@ public class ForrestStudyObserver : StudyObserver
     void SendStats()
     {
         var json = JsonUtility.ToJson(records.Last());
-        QuestDebug.Instance.Log(json);
+        Debug.Log(json);
+        // QuestDebug.Instance.Log(json, true);
         StartCoroutine(network.Set("/stats/teleportRecord", "teleport", json));
     }
 }

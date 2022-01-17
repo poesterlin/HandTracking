@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 public class PathIntegrationStudyObserver : StudyObserver
 {
@@ -7,6 +8,7 @@ public class PathIntegrationStudyObserver : StudyObserver
     public GestureRecognizer recognizer;
     public OVRPlayerController player;
     public UnityEvent<GestureType> OnStateChange = new UnityEvent<GestureType>();
+    public float minTpDistance;
     private NetworkAdapter network;
     private Vector3 startPos;
     private bool isInBetween = false;
@@ -27,19 +29,21 @@ public class PathIntegrationStudyObserver : StudyObserver
     {
         typeArray = order;
         SetTeleporterState();
-        SendDistance(0f);
+        SendDistance(Vector3.zero, Vector3.zero);
     }
 
     void UpdateState(Vector3 newPos)
     {
         if (!isInBetween)
         {
+            recognizer.tpProv.minDistance = minTpDistance;
             isInBetween = true;
             return;
         }
 
         isInBetween = false;
-        SendDistance(Vector3.Distance(startPos, newPos));
+        recognizer.tpProv.minDistance = 0f;
+        SendDistance(startPos, newPos);
         if (state + 1 == typeArray.Length)
         {
             StudyDone();
@@ -54,25 +58,19 @@ public class PathIntegrationStudyObserver : StudyObserver
     {
         OnStateChange.Invoke(typeArray[state]);
         recognizer.AllowedType = typeArray[state];
+        recognizer.AbortCurrentGesture();
+        player.transform.position = startPos;
     }
 
-    void SendDistance(float distance)
+    void SendDistance(Vector3 pointA, Vector3 pointB)
     {
-        StartCoroutine(network.Set("/stats/distance", "distance", distance, "type", (int)typeArray[state]));
+        var distance = Vector3.Distance(pointA, pointB);
+        StartCoroutine(network.Set("/stats/pathIntegration", "pointA", pointA, "pointB", pointB, "distance", distance, "type", (int)typeArray[state]));
     }
 
     void StudyDone()
     {
-        QuestDebug.Instance.Log("The study is completed");
-    }
-    void Shuffle<T>(T[] a)
-    {
-        for (int i = a.Length - 1; i > 0; i--)
-        {
-            int rnd = Random.Range(0, i);
-            T temp = a[i];
-            a[i] = a[rnd];
-            a[rnd] = temp;
-        }
+        StartCoroutine(network.Set("/stats/cb-order"));
+        SceneManager.LoadScene("Forrest");
     }
 }

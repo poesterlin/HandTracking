@@ -25,7 +25,9 @@ public class Tutorial : MonoBehaviour
     {
         if (type == GestureType.Default)
         {
+            doneText.gameObject.SetActive(true);
             isDone = true;
+            return;
         }
         canvasText.gameObject.SetActive(true);
         gestureType = (int)type;

@@ -37,7 +37,12 @@ public class TrackingInfo
 
     public Bone getFinger(int id, Hand hand)
     {
-        return fingerBones[id + "-" + hand];
+        if (fingerBones.ContainsKey(id + "-" + hand))
+        {
+            return fingerBones[id + "-" + hand];
+        }
+        var fakeBone = new Bone(new OVRSkeleton(), new OVRBone((OVRSkeleton.BoneId)id, 0, headset.transform), true);
+        return fakeBone;
     }
 
     public Bone getFinger(int id)

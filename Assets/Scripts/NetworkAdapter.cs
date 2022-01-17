@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-
+using System.Globalization;
 
 public class NetworkAdapter
 {
@@ -24,6 +24,14 @@ public class NetworkAdapter
             bodyJsonString += "\"" + properties[i] + "\":";
 
             Type t = properties[i + 1].GetType();
+            NumberFormatInfo nfi = new NumberFormatInfo();
+            nfi.NumberDecimalSeparator = ".";
+
+            if (t.Equals(typeof(Vector3)))
+            {
+                var v = (Vector3)properties[i + 1];
+                bodyJsonString += $"{{ \"x\": {v.x.ToString(nfi)},\"y\": {v.y.ToString(nfi)}, \"z\": {v.z.ToString(nfi)}}},";
+            }
 
             if (t.Equals(typeof(int)))
             {
@@ -32,7 +40,7 @@ public class NetworkAdapter
 
             if (t.Equals(typeof(float)))
             {
-                bodyJsonString += ((float)properties[i + 1]) + ",";
+                bodyJsonString += ((float)properties[i + 1]).ToString(nfi) + ",";
             }
 
             if (t.Equals(typeof(bool)))
@@ -42,11 +50,12 @@ public class NetworkAdapter
 
             if (t.Equals(typeof(string)))
             {
-                bodyJsonString += "\"" + ((string)properties[i + 1]) + "\",";
+                bodyJsonString += "\"" + ((string)properties[i + 1]).Replace("\"", "\\\"") + "\",";
             }
         }
 
         bodyJsonString = bodyJsonString.TrimEnd(',') + "}";
+        Debug.Log(bodyJsonString);
 
         var request = new UnityWebRequest(ip + endpoint, "POST");
 
@@ -56,6 +65,7 @@ public class NetworkAdapter
         request.SetRequestHeader("Content-Type", "application/json");
         yield return request.SendWebRequest();
         Debug.Log("Status Code: " + request.responseCode);
+        Debug.Log(request.downloadHandler.text);
     }
 
     public IEnumerator Post(string bodyJsonString)
@@ -85,6 +95,29 @@ public class NetworkAdapter
             GestureList list = Gesture.CreateFromJSON(webRequest.downloadHandler.text);
             inst.SavedGestures = new List<Gesture>(list.Gestures);
             QuestDebug.Instance.Log("downloaded " + inst.SavedGestures.Count + " gestures", true);
+        }
+    }
+
+    public IEnumerator UpdateForceGesture(GestureRecognizer inst)
+    {
+        while (true)
+        {
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/stats/forceGesture"))
+            {
+                // Request and wait for the desired page.
+                yield return webRequest.SendWebRequest();
+
+                if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+                {
+                    QuestDebug.Instance.Log(webRequest.error, true);
+                }
+                var json = webRequest.downloadHandler.text;
+                if (json.Length > 5)
+                {
+                    inst.forceGesture = JsonUtility.FromJson<Gesture>(json);
+                }
+            }
+            yield return new WaitForSeconds(0.5f);
         }
     }
 

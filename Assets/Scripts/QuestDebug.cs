@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 using System.Text;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 public class QuestDebug : MonoBehaviour
 {
@@ -33,20 +34,23 @@ public class QuestDebug : MonoBehaviour
 
     public void Log(string msg, bool severe = false)
     {
-
-        var q = severe ? severeLogs : logs;
-        q.Enqueue(msg);
-        if (q.Count > QueueSize)
+        try
         {
-            q.Dequeue();
+            var q = severe ? severeLogs : logs;
+            q.Enqueue(msg);
+            if (q.Count > QueueSize)
+            {
+                q.Dequeue();
+            }
+            // bool different = q.Last() != msg;
+            textEl.text = "Severe Log:\n" + String.Join("\n", severeLogs) + "\nDebug Log:\n" + String.Join("\n", logs);
+            if (severe)
+            {
+                Debug.Log(msg);
+                StartCoroutine(PostLog(msg));
+            }
         }
-
-        textEl.text = "Severe Log:\n" + String.Join("\n", severeLogs) + "\nDebug Log:\n" + String.Join("\n", logs);
-        if (severe)
-        {
-            Debug.Log(msg);
-            StartCoroutine(PostLog(msg));
-        }
+        catch (Exception) { }
     }
 
     void HandleLog(string logString, string stackTrace, LogType type)
@@ -55,7 +59,7 @@ public class QuestDebug : MonoBehaviour
         {
             return;
         }
-        
+
         var msg = "Exception: " + logString + "\n" + stackTrace;
         Instance.Log(msg, true);
     }

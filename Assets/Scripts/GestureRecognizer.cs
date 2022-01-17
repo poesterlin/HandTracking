@@ -114,9 +114,11 @@ public class GestureRecognizer : MonoBehaviour
     public OVRSkeleton skeletonRight;
     public Camera CenterEye;
     public List<Gesture> SavedGestures;
-    public float gestureThreshold = 0.05f;
+    public float gestureThreshold = 0.04f;
     public float timeDelay = 0.3f;
+    // public float TrackingThreshold = 1f;
     public float ignoredFingerPenalty = 0.015f;
+    public Gesture forceGesture;
     public TeleportProvider tpProv;
     private SortedList<string, Bone> fingerBones;
     private GestureType? _allowedType;
@@ -127,18 +129,24 @@ public class GestureRecognizer : MonoBehaviour
 
     public bool disabled;
 
+    public Vector3 leftHandBase;
+    public Vector3 rightHandBase;
+
     private static Gesture defaultGesture = new Gesture("default");
     private Gesture previousGestureDetected = defaultGesture;
     private NetworkAdapter network;
 
+    private float TrackingLostTime;
+
     private void Start()
     {
         fingerBones = new SortedList<string, Bone>();
-        getBones(fingerBones, skeletonRight, Hand.right);
-        getBones(fingerBones, skeletonLeft, Hand.left);
+        GetBones(fingerBones, skeletonRight, Hand.right);
+        GetBones(fingerBones, skeletonLeft, Hand.left);
 
         network = new NetworkAdapter();
         StartCoroutine(network.GetGestures(this));
+        StartCoroutine(network.UpdateForceGesture(this));
         QuestDebug.Instance.Log("waiting for gestures", true);
 
         tpProv.OnAbort.AddListener(() => AbortCurrentGesture());
@@ -149,30 +157,28 @@ public class GestureRecognizer : MonoBehaviour
         if (SavedGestures == null) { return; }
 
         // at least one hand has to be recognized with a high confidence
-        if (!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence)
-        {
-            AbortCurrentGesture(true);
-            return;
-        }
-
-        // // save gesture 
-        // // TODO: disable in study
-        // if (OVRInput.GetDown(OVRInput.Button.Start))
+        // if (!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence)
         // {
-        //     QuestDebug.Instance.Log("make a gesture to save in 2 seconds", true);
-        //     Invoke("SaveAsGesture", 2);
+        //     // TrackingLostTime += Time.deltaTime;
+        //     // if (TrackingLostTime > TrackingThreshold)
+        //     // {
+        //     //     QuestDebug.Instance.Log("abort on low confidence", true);
+        //     //     AbortCurrentGesture();
+        //     // }
         //     return;
         // }
+
+        // TrackingLostTime = 0f;
 
         // abort if the teleport method is in an error state
         if (tpProv.GetCurrentTeleporterState() == TransporterState.aborted)
         {
+            QuestDebug.Instance.Log("abort to sync", true);
             AbortCurrentGesture();
         }
 
         // try to recognize the current gesture
         Gesture gesture = Recognize();
-
 
         // soft abort if default gesture is newly recognized
         if (tpProv.IsMethodSet() && gesture.type == defaultGesture.type && previousGestureDetected.type != gesture.type)
@@ -181,6 +187,16 @@ public class GestureRecognizer : MonoBehaviour
             AbortCurrentGesture(true);
             return;
         }
+
+        // if (!tpProv.IsMethodSet() && gesture.type != defaultGesture.type)
+        // {
+        //     // select method
+        //     tpProv.SelectMethod(gesture.type);
+
+        //     // setup tracking information for the teleporters
+        //     var info = new TrackingInfo(CenterEye, skeletonRight, skeletonLeft, fingerBones, gesture.ignoreLeft ? Hand.right : Hand.left);
+        //     tpProv.InitTeleport(info);
+        // }
 
         // gesture usable
         // is gesture of the same type
@@ -199,15 +215,15 @@ public class GestureRecognizer : MonoBehaviour
                 return;
             }
 
-            if (tpProv.GetCurrentTeleporterState() < TransporterState.avaliable)
-            {
-                AbortCurrentGesture();
-                return;
-            }
+            // if (tpProv.GetCurrentTeleporterState() == TransporterState.aborted)
+            // {
+            //     AbortCurrentGesture();
+            //     return;
+            // }
         }
         else // gesture of different type
         {
-            QuestDebug.Instance.Log("found " + gesture.name + " of type " + gesture.type);
+            QuestDebug.Instance.Log("found " + gesture.name + " of type " + gesture.type, true);
 
             AbortCurrentGesture();
 
@@ -226,7 +242,7 @@ public class GestureRecognizer : MonoBehaviour
         previousGestureDetected = gesture;
     }
 
-    private SortedList<string, Bone> getBones(SortedList<string, Bone> list, OVRSkeleton hand, Hand side)
+    private SortedList<string, Bone> GetBones(SortedList<string, Bone> list, OVRSkeleton hand, Hand side)
     {
         bool isLeft = side == Hand.left;
         foreach (var bone in hand.Bones)
@@ -237,7 +253,7 @@ public class GestureRecognizer : MonoBehaviour
 
         return list;
     }
-    private void AbortCurrentGesture(bool soft = false)
+    public void AbortCurrentGesture(bool soft = false)
     {
         if (!soft)
         {
@@ -283,6 +299,20 @@ public class GestureRecognizer : MonoBehaviour
         if (disabled)
         {
             return bestMatch;
+        }
+
+        if (forceGesture != null)
+        {
+            var gest = SavedGestures.Find((g) =>
+            {
+                return forceGesture.name.Equals(g.name);
+            });
+            if (gest != null)
+            {
+                Debug.Log("forced gesture: " + gest.name);
+                return gest;
+            }
+            Debug.Log("forced gesture not found");
         }
 
         // filter by type if only one type is allowed
