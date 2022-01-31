@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using UnityEngine;
 using UnityEngine.Events;
+using System.Linq;
 
 [Serializable]
 public enum GestureType
@@ -112,6 +114,9 @@ public class GestureRecognizer : MonoBehaviour
 {
     public OVRSkeleton skeletonLeft;
     public OVRSkeleton skeletonRight;
+    public OVRHand left;
+    public OVRHand right;
+
     public Camera CenterEye;
     public List<Gesture> SavedGestures;
     public float gestureThreshold = 0.04f;
@@ -137,6 +142,10 @@ public class GestureRecognizer : MonoBehaviour
     private NetworkAdapter network;
 
     private float TrackingLostTime;
+    private bool isCalibrating = true;
+    private float[] HandSizes = new float[100];
+    private int CalibrationIdx = 0;
+
 
     private void Start()
     {
@@ -145,7 +154,6 @@ public class GestureRecognizer : MonoBehaviour
         GetBones(fingerBones, skeletonLeft, Hand.left);
 
         network = new NetworkAdapter();
-        StartCoroutine(network.GetGestures(this));
         StartCoroutine(network.UpdateForceGesture(this));
         QuestDebug.Instance.Log("waiting for gestures", true);
 
@@ -154,9 +162,21 @@ public class GestureRecognizer : MonoBehaviour
 
     private void Update()
     {
-        if (SavedGestures == null) { return; }
+        // calibrate hand size
+        if (isCalibrating && left.IsDataHighConfidence && right.IsDataHighConfidence)
+        {
+            AddToAverageSize(left.HandScale, right.HandScale);
+            QuestDebug.Instance.Log("left: " + left.HandScale + " right: " + right.HandScale, true);
+            return;
+        }
+        else if (isCalibrating && (!left.IsDataHighConfidence || !right.IsDataHighConfidence))
+        {
+            QuestDebug.Instance.Log("not confident enough for calibration", true);
+        }
 
-        // at least one hand has to be recognized with a high confidence
+        if (SavedGestures == null || isCalibrating) { return; }
+
+        // // at least one hand has to be recognized with a high confidence
         // if (!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence)
         // {
         //     // TrackingLostTime += Time.deltaTime;
@@ -242,6 +262,20 @@ public class GestureRecognizer : MonoBehaviour
         previousGestureDetected = gesture;
     }
 
+    private void AddToAverageSize(float sizeLeft, float sizeRight)
+    {
+        HandSizes[CalibrationIdx] = (sizeLeft + sizeRight) / 2;
+        CalibrationIdx += 1;
+
+        if (CalibrationIdx == HandSizes.Length)
+        {
+            isCalibrating = false;
+            float average = HandSizes.Aggregate((total, next) => total + next) / HandSizes.Length;
+            StartCoroutine(network.GetGestures(this, average));
+            QuestDebug.Instance.Log("hand size: " + average, true);
+        }
+    }
+
     private SortedList<string, Bone> GetBones(SortedList<string, Bone> list, OVRSkeleton hand, Hand side)
     {
         bool isLeft = side == Hand.left;
@@ -287,7 +321,7 @@ public class GestureRecognizer : MonoBehaviour
 
     private void ReloadGestures()
     {
-        StartCoroutine(network.GetGestures(this));
+        StartCoroutine(network.GetGestures(this, 1f));
         QuestDebug.Instance.Log("reloaded", true);
     }
 
@@ -301,6 +335,7 @@ public class GestureRecognizer : MonoBehaviour
             return bestMatch;
         }
 
+        // TODO: Remove
         if (forceGesture != null)
         {
             var gest = SavedGestures.Find((g) =>
@@ -312,7 +347,6 @@ public class GestureRecognizer : MonoBehaviour
                 Debug.Log("forced gesture: " + gest.name);
                 return gest;
             }
-            Debug.Log("forced gesture not found");
         }
 
         // filter by type if only one type is allowed

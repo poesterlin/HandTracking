@@ -1,4 +1,3 @@
-using OculusSampleFramework;
 using UnityEngine;
 
 public class Flask : MonoBehaviour

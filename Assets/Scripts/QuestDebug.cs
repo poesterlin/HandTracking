@@ -42,7 +42,7 @@ public class QuestDebug : MonoBehaviour
             {
                 q.Dequeue();
             }
-            // bool different = q.Last() != msg;
+            // bool different = q.Last().Equals(msg);
             textEl.text = "Severe Log:\n" + String.Join("\n", severeLogs) + "\nDebug Log:\n" + String.Join("\n", logs);
             if (severe)
             {

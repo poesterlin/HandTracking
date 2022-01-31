@@ -73,4 +73,13 @@ public class PathIntegrationStudyObserver : StudyObserver
         StartCoroutine(network.Set("/stats/cb-order"));
         SceneManager.LoadScene("Forrest");
     }
+
+    public override GestureType GetCurrentGesture()
+    {
+        if (typeArray != null && typeArray.Length > state)
+        {
+            return typeArray[state];
+        }
+        return GestureType.Default;
+    }
 }

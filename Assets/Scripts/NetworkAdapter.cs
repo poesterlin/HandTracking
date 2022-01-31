@@ -79,10 +79,22 @@ public class NetworkAdapter
         Debug.Log("Status Code: " + request.responseCode);
     }
 
-    public IEnumerator GetGestures(GestureRecognizer inst)
+    public IEnumerator GetGestures(GestureRecognizer inst, float size)
     {
+        var getSize = "small";
+
+        if (size > 0.9f)
+        {
+            getSize = "medium";
+        }
+
+        if (size > 1.05f)
+        {
+            getSize = "large";
+        }
+
         QuestDebug.Instance.Log(ip);
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture"))
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture?size=" + getSize))
         {
             // Request and wait for the desired page.
             yield return webRequest.SendWebRequest();
@@ -117,6 +129,35 @@ public class NetworkAdapter
                     inst.forceGesture = JsonUtility.FromJson<Gesture>(json);
                 }
             }
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
+    public IEnumerator UpdateState(StateController inst)
+    {
+        while (true)
+        {
+            using (UnityWebRequest request = new UnityWebRequest(ip + "/stats/state", "POST"))
+            {
+                byte[] bodyRaw = Encoding.UTF8.GetBytes(inst.state.ToJSON());
+                request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                request.downloadHandler = new DownloadHandlerBuffer();
+                request.SetRequestHeader("Content-Type", "application/json");
+                yield return request.SendWebRequest();
+
+                if (request.result == UnityWebRequest.Result.ConnectionError)
+                {
+                    QuestDebug.Instance.Log(request.error, true);
+                }
+
+                var json = request.downloadHandler.text;
+
+                if (json.Length > 5)
+                {
+                    inst.LoadState(State.FromJSON(json));
+                }
+            }
+
             yield return new WaitForSeconds(0.5f);
         }
     }

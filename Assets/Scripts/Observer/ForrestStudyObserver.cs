@@ -128,4 +128,10 @@ public class ForrestStudyObserver : StudyObserver
         // QuestDebug.Instance.Log(json, true);
         StartCoroutine(network.Set("/stats/teleportRecord", "teleport", json));
     }
+
+    public override GestureType GetCurrentGesture()
+    {
+        return typeArray[state];
+    }
+
 }

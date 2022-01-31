@@ -12855,11 +12855,35 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.2
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &503297303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 503297299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39bccd417e5067246878b8b7d29abab5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hand: {fileID: 503297308}
 --- !u!4 &503297307 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4453513310108136, guid: 835e735ca71bf78459fb2cababd74112, type: 3}
   m_PrefabInstance: {fileID: 540692617}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &503297308 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114428879332287356, guid: 835e735ca71bf78459fb2cababd74112, type: 3}
+  m_PrefabInstance: {fileID: 540692617}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 503297299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb7623a8f0b49cf4dbaa40aea4d4be64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &513894087 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1870938896605422, guid: 835e735ca71bf78459fb2cababd74112, type: 3}
@@ -12920,6 +12944,30 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &513894092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513894087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39bccd417e5067246878b8b7d29abab5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hand: {fileID: 513894096}
+--- !u!114 &513894096 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114428879332287356, guid: 835e735ca71bf78459fb2cababd74112, type: 3}
+  m_PrefabInstance: {fileID: 720031285}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513894087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb7623a8f0b49cf4dbaa40aea4d4be64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &519883504
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15349,11 +15397,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b11a5b659a2f49d46800a05ddafe26bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  line: {fileID: 881409937}
-  simulator: {fileID: 574222619}
-  start: {x: -6.03, y: 1, z: 2}
-  force: {x: 4.29, y: 1.44, z: 8.43}
-  skew: {x: 1, y: 0, z: 1}
 --- !u!120 &881409937
 LineRenderer:
   m_ObjectHideFlags: 0
@@ -20887,7 +20930,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   productionServer: https://vr.oesterlin.dev
   devServer: http://192.168.0.194:3000
-  productionSettings: 1
+  productionSettings: 0
 --- !u!4 &952977550
 Transform:
   m_ObjectHideFlags: 0
@@ -29068,6 +29111,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1409006385}
   - component: {fileID: 1409006384}
+  - component: {fileID: 1409006386}
   m_Layer: 0
   m_Name: StudyObserver
   m_TagString: Untagged
@@ -29136,6 +29180,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1409006386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1409006383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30319736b064d0b45b830ccc7d7f440a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  state:
+    Scene: 
+    CurrentGesture: 0
+  observer: {fileID: 1409006384}
 --- !u!1001 &1416908595
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33057,6 +33117,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skeletonLeft: {fileID: 540692618}
   skeletonRight: {fileID: 720031286}
+  left: {fileID: 503297308}
+  right: {fileID: 513894096}
   CenterEye: {fileID: 463930441}
   SavedGestures: []
   gestureThreshold: 0.05
@@ -33108,7 +33170,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   textEl: {fileID: 0}
   QueueSize: 30
-  showLog: 1
+  showLog: 0
 --- !u!1001 &2081999284
 PrefabInstance:
   m_ObjectHideFlags: 0

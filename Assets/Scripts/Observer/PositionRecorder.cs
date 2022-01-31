@@ -18,7 +18,6 @@ public class PositionRecorder : MonoBehaviour
     {
         while (true)
         {
-            Debug.Log("sending");
             var pos = gameObject.transform.position;
             var rotation = gameObject.transform.rotation;
             StartCoroutine(network.Set("/stats/position", "posX", pos.x, "posY", pos.z, "rotation", rotation.eulerAngles.y));

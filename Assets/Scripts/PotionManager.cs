@@ -11,6 +11,7 @@ public class PotionManager : MonoBehaviour
 
     public ForrestStudyObserver observer;
     public OVRCameraRig cameraRig;
+    private NetworkAdapter network;
 
 
     private int count = 0;
@@ -18,6 +19,7 @@ public class PotionManager : MonoBehaviour
     void Start()
     {
         Shuffle(positions);
+        network = new NetworkAdapter();
     }
 
     public void CreateFlask()
@@ -30,13 +32,14 @@ public class PotionManager : MonoBehaviour
         script.cameraRig = cameraRig;
         script.snapSpeed = 8f;
         script.t = new Vector4(1, 1, 1, 1);
-        
+
         var grabbable = flask.GetComponent<HandTrackingGrabbable>();
         grabbable.mortar = mortar;
 
         grabbable.wasGrabbed.AddListener(observer.DisableTeleport);
         grabbable.wasReleased.AddListener(observer.EnableTeleport);
         count += 1;
+        StartCoroutine(network.Set("/stats/flaskPosition", "posX", flask.transform.position.x, "posY", flask.transform.position.z));
     }
 
 
