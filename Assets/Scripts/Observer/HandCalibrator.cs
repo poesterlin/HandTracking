@@ -2,14 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class HandCalibrator : MonoBehaviour
 {
 
+    public float AverageSize = 1f;
     public OVRHand hand;
     private float[] HandSizes = new float[100];
     private int CalibrationIdx = 0;
     private NetworkAdapter network;
+
+    public UnityEvent<float> CalibrationDone = new UnityEvent<float>();
 
     void Start()
     {
@@ -34,9 +38,10 @@ public class HandCalibrator : MonoBehaviour
         if (CalibrationIdx == HandSizes.Length)
         {
             CalibrationIdx = 0;
-            float average = HandSizes.Aggregate((total, next) => total + next) / HandSizes.Length;
-            network.Set("/stats/any", "size", average);
-            QuestDebug.Instance.Log("hand size: " + average, true);
+            AverageSize = HandSizes.Aggregate((total, next) => total + next) / HandSizes.Length;
+            CalibrationDone.Invoke(AverageSize);
+            network.Set("/stats/any", "size", AverageSize);
+            QuestDebug.Instance.Log("hand size: " + AverageSize, true);
         }
     }
 }

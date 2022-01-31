@@ -12867,7 +12867,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39bccd417e5067246878b8b7d29abab5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AverageSize: 1
   hand: {fileID: 503297308}
+  CalibrationDone:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!4 &503297307 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4453513310108136, guid: 835e735ca71bf78459fb2cababd74112, type: 3}
@@ -12956,7 +12960,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39bccd417e5067246878b8b7d29abab5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AverageSize: 1
   hand: {fileID: 513894096}
+  CalibrationDone:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &513894096 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 114428879332287356, guid: 835e735ca71bf78459fb2cababd74112, type: 3}
@@ -33115,10 +33123,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21c7292d3fae45844a2eef4ea67bf78b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  server: vr.oesterlin.dev:9002
   skeletonLeft: {fileID: 540692618}
   skeletonRight: {fileID: 720031286}
-  left: {fileID: 503297308}
-  right: {fileID: 513894096}
+  left: {fileID: 503297303}
+  right: {fileID: 513894092}
   CenterEye: {fileID: 463930441}
   SavedGestures: []
   gestureThreshold: 0.05
@@ -33137,6 +33146,7 @@ MonoBehaviour:
     handPosLeft: {x: 0, y: 0, z: 0}
     handPosRight: {x: 0, y: 0, z: 0}
     time: 0
+    size: 
   tpProv: {fileID: 574222617}
   disabled: 0
   leftHandBase: {x: 0, y: 0, z: 0}

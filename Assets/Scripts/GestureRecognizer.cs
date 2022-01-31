@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using UnityEngine;
 using UnityEngine.Events;
+using WebSocketSharp;
 using System.Linq;
+
 
 [Serializable]
 public enum GestureType
@@ -38,12 +40,29 @@ public class Gesture
 
     [HideInInspector]
     public float time = 0.0f;
+    public string size;
 
     public Gesture(string gestureName)
     {
         name = gestureName;
         fingerData = null;
         onRecognized = new UnityEvent();
+    }
+
+    public void SetSize(float factor)
+    {
+        size = "small";
+
+        if (factor > 0.9f)
+        {
+            size = "medium";
+        }
+
+        if (factor > 1.05f)
+        {
+            size = "large";
+        }
+
     }
 
     public string ToJson()
@@ -112,10 +131,13 @@ public class Bone
 
 public class GestureRecognizer : MonoBehaviour
 {
+
+    public string server = "vr.oesterlin.dev";
+    public WebSocket ws;
     public OVRSkeleton skeletonLeft;
     public OVRSkeleton skeletonRight;
-    public OVRHand left;
-    public OVRHand right;
+    public HandCalibrator left;
+    public HandCalibrator right;
 
     public Camera CenterEye;
     public List<Gesture> SavedGestures;
@@ -140,11 +162,8 @@ public class GestureRecognizer : MonoBehaviour
     private static Gesture defaultGesture = new Gesture("default");
     private Gesture previousGestureDetected = defaultGesture;
     private NetworkAdapter network;
-
+    private bool shouldSave;
     private float TrackingLostTime;
-    private bool isCalibrating = true;
-    private float[] HandSizes = new float[100];
-    private int CalibrationIdx = 0;
 
 
     private void Start()
@@ -158,23 +177,36 @@ public class GestureRecognizer : MonoBehaviour
         QuestDebug.Instance.Log("waiting for gestures", true);
 
         tpProv.OnAbort.AddListener(() => AbortCurrentGesture());
+
+        ws = new WebSocket(server);
+        ws.Connect();
+        ws.OnMessage += (object sender, MessageEventArgs e) => MessageReceived(sender, e);
+        ws.OnClose += (object sender, CloseEventArgs e) =>
+        {
+            Debug.Log("closing: " + e.Reason + "(" + e.Code + ")");
+            Invoke("Reconnect", 1f);
+        };
+        ws.OnError += (object sender, ErrorEventArgs e) =>
+        {
+            Debug.Log("error: " + e.Message);
+            Debug.Log(e.Exception);
+            Invoke("Reconnect", 1f);
+        };
+
+        left.CalibrationDone.AddListener((size) => ReloadGestures(size));
+        right.CalibrationDone.AddListener((size) => ReloadGestures(size));
     }
 
     private void Update()
     {
-        // calibrate hand size
-        if (isCalibrating && left.IsDataHighConfidence && right.IsDataHighConfidence)
+        if (shouldSave)
         {
-            AddToAverageSize(left.HandScale, right.HandScale);
-            QuestDebug.Instance.Log("left: " + left.HandScale + " right: " + right.HandScale, true);
+            shouldSave = false;
+            SaveAsGesture((left.AverageSize + right.AverageSize) / 2f);
             return;
         }
-        else if (isCalibrating && (!left.IsDataHighConfidence || !right.IsDataHighConfidence))
-        {
-            QuestDebug.Instance.Log("not confident enough for calibration", true);
-        }
 
-        if (SavedGestures == null || isCalibrating) { return; }
+        if (SavedGestures == null) { return; }
 
         // // at least one hand has to be recognized with a high confidence
         // if (!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence)
@@ -262,20 +294,6 @@ public class GestureRecognizer : MonoBehaviour
         previousGestureDetected = gesture;
     }
 
-    private void AddToAverageSize(float sizeLeft, float sizeRight)
-    {
-        HandSizes[CalibrationIdx] = (sizeLeft + sizeRight) / 2;
-        CalibrationIdx += 1;
-
-        if (CalibrationIdx == HandSizes.Length)
-        {
-            isCalibrating = false;
-            float average = HandSizes.Aggregate((total, next) => total + next) / HandSizes.Length;
-            StartCoroutine(network.GetGestures(this, average));
-            QuestDebug.Instance.Log("hand size: " + average, true);
-        }
-    }
-
     private SortedList<string, Bone> GetBones(SortedList<string, Bone> list, OVRSkeleton hand, Hand side)
     {
         bool isLeft = side == Hand.left;
@@ -299,7 +317,7 @@ public class GestureRecognizer : MonoBehaviour
         previousGestureDetected = defaultGesture;
     }
 
-    private void SaveAsGesture()
+    private void SaveAsGesture(float size)
     {
         Gesture g = new Gesture("new gesture");
         List<Bone> data = new List<Bone>();
@@ -310,6 +328,7 @@ public class GestureRecognizer : MonoBehaviour
 
         g.fingerData = data;
 
+        g.SetSize(size);
         g.handPosLeft = GetPalmNormal(GetFingers(Hand.left));
         g.handPosRight = GetPalmNormal(GetFingers(Hand.right));
         SavedGestures.Add(g);
@@ -317,12 +336,23 @@ public class GestureRecognizer : MonoBehaviour
         StartCoroutine(network.Post(g.ToJson()));
         QuestDebug.Instance.Log("new gesture saved", true);
         Invoke("ReloadGestures", 1);
+        QuestDebug.Instance.Log("new gesture saved");
+        ws.Send("done");
     }
 
-    private void ReloadGestures()
+    private void ReloadGestures(float average)
     {
-        StartCoroutine(network.GetGestures(this, 1f));
+        StartCoroutine(network.GetGestures(this, average));
         QuestDebug.Instance.Log("reloaded", true);
+    }
+
+    private void MessageReceived(object sender, MessageEventArgs e)
+    {
+        string saveCmd = "save";
+        if (saveCmd.Equals(e.Data))
+        {
+            shouldSave = true;
+        }
     }
 
     private Gesture Recognize()
