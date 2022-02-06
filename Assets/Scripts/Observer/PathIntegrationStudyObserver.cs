@@ -71,7 +71,7 @@ public class PathIntegrationStudyObserver : StudyObserver
     void StudyDone()
     {
         StartCoroutine(network.Set("/stats/cb-order"));
-        SceneManager.LoadScene("Forrest");
+        SceneManager.LoadScene("TakeOffHeadset");
     }
 
     public override GestureType GetCurrentGesture()

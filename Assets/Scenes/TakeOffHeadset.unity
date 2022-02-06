@@ -291,6 +291,10 @@ PrefabInstance:
       propertyPath: m_MinMoveDistance
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1866196763, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 114814064252544740, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
       propertyPath: opMode
       value: 2
@@ -511,7 +515,47 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6248442800717012166, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
       propertyPath: m_Text
-      value: Bitte setz das Headset ab.
+      value: Bitte setze das Headset ab...
+      objectReference: {fileID: 0}
+    - target: {fileID: 6248442800717012166, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_Color.b
+      value: 0.16981131
+      objectReference: {fileID: 0}
+    - target: {fileID: 6248442800717012166, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_Color.g
+      value: 0.07654343
+      objectReference: {fileID: 0}
+    - target: {fileID: 6248442800717012166, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_Color.r
+      value: 0.061516542
+      objectReference: {fileID: 0}
+    - target: {fileID: 6248442800717012166, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_FontData.m_MaxSize
+      value: 300
+      objectReference: {fileID: 0}
+    - target: {fileID: 6248442800717012166, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_FontData.m_FontSize
+      value: 114
+      objectReference: {fileID: 0}
+    - target: {fileID: 6248442800717012167, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 1000
+      objectReference: {fileID: 0}
+    - target: {fileID: 6248442800717012167, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6248442800717012167, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6248442800717012167, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6248442800717012167, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -268.28
       objectReference: {fileID: 0}
     - target: {fileID: 6248442800853461298, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
       propertyPath: m_IsActive
@@ -1414,7 +1458,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   productionServer: https://vr.oesterlin.dev
   devServer: http://192.168.0.194:3000
-  productionSettings: 0
+  productionSettings: 1
 --- !u!4 &2123747568
 Transform:
   m_ObjectHideFlags: 0

@@ -9,7 +9,7 @@ public class HandCalibrator : MonoBehaviour
 
     public float AverageSize = 1f;
     public OVRHand hand;
-    private float[] HandSizes = new float[100];
+    private float[] HandSizes = new float[75 * 5];  // record for 5s at 75 frames
     private int CalibrationIdx = 0;
     private NetworkAdapter network;
 
@@ -23,6 +23,12 @@ public class HandCalibrator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Application.isEditor)
+        {
+            AddToAverageSize(Random.Range(0.8f, 1.2f));
+            return;
+        }
+
         if (hand.IsTracked && hand.IsDataHighConfidence)
         {
             AddToAverageSize(hand.HandScale);
@@ -40,8 +46,9 @@ public class HandCalibrator : MonoBehaviour
             CalibrationIdx = 0;
             AverageSize = HandSizes.Aggregate((total, next) => total + next) / HandSizes.Length;
             CalibrationDone.Invoke(AverageSize);
-            network.Set("/stats/any", "size", AverageSize);
+            CalibrationDone.RemoveAllListeners();
             QuestDebug.Instance.Log("hand size: " + AverageSize, true);
+            Destroy(gameObject);
         }
     }
 }

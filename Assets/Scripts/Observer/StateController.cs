@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -26,10 +24,16 @@ public class State
             SceneManager.LoadScene(s.Scene);
         }
 
-        if (CurrentGesture != s.CurrentGesture)
+        if (CurrentGesture != s.CurrentGesture && obs != null)
         {
+            // reset 
+            GestureType[] defaultOrder = { GestureType.Default };
+            obs.SetOrder(defaultOrder);
+
+            // apply new order
             GestureType[] order = { s.CurrentGesture };
             obs.SetOrder(order);
+            QuestDebug.Instance.Log("state set to: " + ToString(), true);
         }
     }
 
@@ -54,7 +58,6 @@ public class StateController : MonoBehaviour
 {
     public State state;
     public StudyObserver observer;
-
     private NetworkAdapter network;
     void Start()
     {
@@ -65,8 +68,10 @@ public class StateController : MonoBehaviour
 
     public void LoadState(State newState)
     {
-        Debug.Log(newState);
-        state.LoadState(newState, observer);
+        if (state != null)
+        {
+            state.LoadState(newState, observer);
+        }
         state = newState;
     }
 }

@@ -1,7 +1,8 @@
+using System;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using UnityEngine.UI;
 
+[Serializable]
 public class Tutorial : MonoBehaviour
 {
     public Animator handAnimation;
@@ -9,6 +10,12 @@ public class Tutorial : MonoBehaviour
     public AnimationEvents events;
     public Text canvasText;
     public Text doneText;
+
+    public Vector3[] lineAnchors = new Vector3[] { new Vector3(1, 1, 1), new Vector3(1, 1, 1), new Vector3(1, 1, 1), new Vector3(1, 1, 1), new Vector3(1, 1, 1), new Vector3(1, 1, 1) };
+
+    public Vector3 anchorOffset = new Vector3(0, 0, 0);
+
+    public LineRenderer line;
 
     private bool isDone = false;
     private int gestureType = 0;
@@ -23,19 +30,25 @@ public class Tutorial : MonoBehaviour
 
     public void ShowTutorialFor(GestureType type)
     {
-        if (type == GestureType.Default)
+        if (gestureType != (int)type && type != GestureType.Default)
         {
-            doneText.gameObject.SetActive(true);
-            isDone = true;
-            return;
+            HideTutorials();
         }
-        canvasText.gameObject.SetActive(true);
+
         gestureType = (int)type;
+        isDone = type == GestureType.Default;
+        doneText.gameObject.SetActive(isDone);
+        canvasText.gameObject.SetActive(!isDone);
         handAnimation.SetTrigger("flyIn");
+        if (!isDone)
+        {
+            Invoke("ShowLine", 2f);
+        }
     }
 
     void Update()
     {
+        // ShowLine();
         if (gestureType != (int)GestureType.TriangleGesture) { return; }
 
 
@@ -50,10 +63,11 @@ public class Tutorial : MonoBehaviour
         bool isFlying = state == 0;
         handAnimation.enabled = isFlying;
 
-        // only enable left hand for triangle gesture
         LeftHand.enabled = !isFlying;
-        LeftHand.gameObject.SetActive(!isFlying && gestureType == (int)GestureType.TriangleGesture);
         RightHand.enabled = !isFlying;
+
+        // only enable left hand for triangle gesture
+        LeftHand.gameObject.SetActive(!isFlying && gestureType == (int)GestureType.TriangleGesture);
 
         if (!isFlying)
         {
@@ -64,17 +78,31 @@ public class Tutorial : MonoBehaviour
 
     public void HideTutorials()
     {
-        if (isDone)
-        {
-            doneText.gameObject.SetActive(true);
-            return;
-        }
+        HideLine();
+        doneText.gameObject.SetActive(isDone);
+        SwitchAnimator(0);
         canvasText.gameObject.SetActive(false);
         LeftHand.SetTrigger("exit");
         RightHand.SetTrigger("exit");
         LeftHand.enabled = false;
         RightHand.enabled = false;
-        SwitchAnimator(0);
         handAnimation.SetTrigger("goAway");
+    }
+
+    private void ShowLine()
+    {
+        if (gestureType == 0)
+        {
+            return;
+        }
+        line.enabled = true;
+        Vector3[] positions = { lineAnchors[(gestureType - 1) * 2] + anchorOffset, lineAnchors[(gestureType - 1) * 2 + 1] + anchorOffset };
+        line.SetPositions(positions);
+    }
+
+    private void HideLine()
+    {
+        ShowLine();
+        line.enabled = false;
     }
 }

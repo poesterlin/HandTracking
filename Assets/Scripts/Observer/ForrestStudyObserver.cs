@@ -101,7 +101,7 @@ public class ForrestStudyObserver : StudyObserver
         Invoke("ResetPosition", 1.5f);
         if (state + 1 == typeArray.Length)
         {
-            SceneManager.LoadScene("PathIntegration");
+            SceneManager.LoadScene("TakeOffHeadset");
             return;
         }
         state += 1;

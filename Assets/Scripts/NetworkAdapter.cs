@@ -55,7 +55,7 @@ public class NetworkAdapter
         }
 
         bodyJsonString = bodyJsonString.TrimEnd(',') + "}";
-        Debug.Log(bodyJsonString);
+        // Debug.Log(bodyJsonString);
 
         var request = new UnityWebRequest(ip + endpoint, "POST");
 
@@ -64,8 +64,8 @@ public class NetworkAdapter
         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
         yield return request.SendWebRequest();
-        Debug.Log("Status Code: " + request.responseCode);
-        Debug.Log(request.downloadHandler.text);
+        // Debug.Log("Status Code: " + request.responseCode);
+        // Debug.Log(request.downloadHandler.text);
     }
 
     public IEnumerator Post(string bodyJsonString)

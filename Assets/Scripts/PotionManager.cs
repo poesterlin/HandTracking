@@ -22,8 +22,12 @@ public class PotionManager : MonoBehaviour
         network = new NetworkAdapter();
     }
 
-    public void CreateFlask()
+    public void CreateFlask(GestureType type)
     {
+        if (type == GestureType.Default)
+        {
+            return;
+        }
         var flask = Instantiate(potionPrefab, transform.TransformPoint(positions[count]), Quaternion.identity, transform);
         var script = flask.GetComponent<Flask>();
         script.mortar = mortar;
@@ -38,7 +42,7 @@ public class PotionManager : MonoBehaviour
 
         grabbable.wasGrabbed.AddListener(observer.DisableTeleport);
         grabbable.wasReleased.AddListener(observer.EnableTeleport);
-        count += 1;
+        count = (count + 1) % positions.Length - 1;
         StartCoroutine(network.Set("/stats/flaskPosition", "posX", flask.transform.position.x, "posY", flask.transform.position.z));
     }
 
