@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using UnityEngine;
 using UnityEngine.Events;
 using WebSocketSharp;
-using System.Linq;
-
+using UnityEngine.Assertions;
 
 [Serializable]
 public enum GestureType
@@ -40,29 +38,11 @@ public class Gesture
 
     [HideInInspector]
     public float time = 0.0f;
-    public string size;
-
     public Gesture(string gestureName)
     {
         name = gestureName;
         fingerData = null;
         onRecognized = new UnityEvent();
-    }
-
-    public void SetSize(float factor)
-    {
-        size = "small";
-
-        if (factor > 0.9f)
-        {
-            size = "medium";
-        }
-
-        if (factor > 1.05f)
-        {
-            size = "large";
-        }
-
     }
 
     public string ToJson()
@@ -86,7 +66,9 @@ public class Gesture
 public class Bone
 {
     [NonSerialized]
-    OVRSkeleton Hand;
+    public OVRSkeleton Hand;
+    [NonSerialized]
+    HandCalibrator calibrator;
     [NonSerialized]
     public OVRBone Finger;
 
@@ -94,9 +76,11 @@ public class Bone
     public OVRSkeleton.BoneId id;
     public Vector3 position;
 
-    public Bone(OVRSkeleton Hand, OVRBone OVRFinger, bool isLeft)
+    public Bone(OVRBone OVRFinger, HandCalibrator handCalibrator, bool isLeft)
     {
-        this.Hand = Hand;
+        Hand = handCalibrator.skeleton;
+        Assert.IsNotNull(Hand, "Hand constructor");
+        calibrator = handCalibrator;
         Finger = OVRFinger;
         isLeftHand = isLeft;
         id = Finger.Id;
@@ -119,13 +103,18 @@ public class Bone
 
     public Bone Save()
     {
-        position = GetRelativePosition();
+        position = GetScaledPosition();
         return this;
     }
 
     public string ToID()
     {
         return ((int)id) + "-" + (isLeftHand ? "left" : "right");
+    }
+
+    public Vector3 GetScaledPosition()
+    {
+        return GetRelativePosition() / calibrator.AverageSize;
     }
 }
 
@@ -136,14 +125,14 @@ public class GestureRecognizer : MonoBehaviour
     public WebSocket ws;
     public OVRSkeleton skeletonLeft;
     public OVRSkeleton skeletonRight;
-    public HandCalibrator left;
-    public HandCalibrator right;
+    public HandCalibrator leftCal;
+    public HandCalibrator rightCal;
 
     public Camera CenterEye;
     public List<Gesture> SavedGestures;
     public float gestureThreshold = 0.04f;
     public float timeDelay = 0.3f;
-    // public float TrackingThreshold = 1f;
+    public float TrackingThreshold = 1f;
     public float ignoredFingerPenalty = 0.015f;
     public Gesture forceGesture;
     public TeleportProvider tpProv;
@@ -169,8 +158,8 @@ public class GestureRecognizer : MonoBehaviour
     private void Start()
     {
         fingerBones = new SortedList<string, Bone>();
-        GetBones(fingerBones, skeletonRight, Hand.right);
-        GetBones(fingerBones, skeletonLeft, Hand.left);
+        GetBones(fingerBones, skeletonRight, rightCal, Hand.right);
+        GetBones(fingerBones, skeletonLeft, leftCal, Hand.left);
 
         network = new NetworkAdapter();
         StartCoroutine(network.UpdateForceGesture(this));
@@ -193,8 +182,8 @@ public class GestureRecognizer : MonoBehaviour
             Invoke("Reconnect", 1f);
         };
 
-        left.CalibrationDone.AddListener((size) => ReloadGestures(size));
-        right.CalibrationDone.AddListener((size) => ReloadGestures(size));
+        leftCal.CalibrationDone.AddListener((size) => ReloadGestures());
+        rightCal.CalibrationDone.AddListener((size) => ReloadGestures());
     }
 
     private void Update()
@@ -202,21 +191,22 @@ public class GestureRecognizer : MonoBehaviour
         if (shouldSave)
         {
             shouldSave = false;
-            SaveAsGesture((left.AverageSize + right.AverageSize) / 2f);
+            SaveAsGesture();
             return;
         }
 
         if (SavedGestures == null) { return; }
 
-        // // at least one hand has to be recognized with a high confidence
-        // if (!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence)
+        // at least one hand has to be recognized with a high confidence
+        // if ((!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence) && !Application.isEditor)
         // {
-        //     // TrackingLostTime += Time.deltaTime;
-        //     // if (TrackingLostTime > TrackingThreshold)
-        //     // {
-        //     //     QuestDebug.Instance.Log("abort on low confidence", true);
-        //     //     AbortCurrentGesture();
-        //     // }
+        //     if (TrackingLostTime > TrackingThreshold)
+        //     {
+        //         QuestDebug.Instance.Log("abort on low confidence", true);
+        //         AbortCurrentGesture();
+        //         return;
+        //     }
+        //     TrackingLostTime += Time.deltaTime;
         //     return;
         // }
 
@@ -232,23 +222,23 @@ public class GestureRecognizer : MonoBehaviour
         // try to recognize the current gesture
         Gesture gesture = Recognize();
 
-        // soft abort if default gesture is newly recognized
-        if (tpProv.IsMethodSet() && gesture.type == defaultGesture.type && previousGestureDetected.type != gesture.type)
-        {
-            QuestDebug.Instance.Log("abort on default", true);
-            AbortCurrentGesture(true);
-            return;
-        }
-
-        // if (!tpProv.IsMethodSet() && gesture.type != defaultGesture.type)
+        // // soft abort if default gesture is newly recognized
+        // if (tpProv.IsMethodSet() && gesture.type == defaultGesture.type && previousGestureDetected.type != gesture.type)
         // {
-        //     // select method
-        //     tpProv.SelectMethod(gesture.type);
-
-        //     // setup tracking information for the teleporters
-        //     var info = new TrackingInfo(CenterEye, skeletonRight, skeletonLeft, fingerBones, gesture.ignoreLeft ? Hand.right : Hand.left);
-        //     tpProv.InitTeleport(info);
+        //     QuestDebug.Instance.Log("abort on default", true);
+        //     AbortCurrentGesture(true);
+        //     return;
         // }
+
+        if (!tpProv.IsMethodSet() && gesture.type != defaultGesture.type)
+        {
+            // select method
+            tpProv.SelectMethod(gesture.type);
+
+            // setup tracking information for the teleporters
+            var info = new TrackingInfo(CenterEye, rightCal, leftCal, fingerBones, gesture.ignoreLeft ? Hand.right : Hand.left);
+            tpProv.InitTeleport(info);
+        }
 
         // gesture usable
         // is gesture of the same type
@@ -267,11 +257,11 @@ public class GestureRecognizer : MonoBehaviour
                 return;
             }
 
-            // if (tpProv.GetCurrentTeleporterState() == TransporterState.aborted)
-            // {
-            //     AbortCurrentGesture();
-            //     return;
-            // }
+            if (tpProv.GetCurrentTeleporterState() == TransporterState.aborted)
+            {
+                AbortCurrentGesture();
+                return;
+            }
         }
         else // gesture of different type
         {
@@ -288,18 +278,18 @@ public class GestureRecognizer : MonoBehaviour
             tpProv.SelectMethod(gesture.type);
 
             // setup tracking information for the teleporters
-            var info = new TrackingInfo(CenterEye, skeletonRight, skeletonLeft, fingerBones, gesture.ignoreLeft ? Hand.right : Hand.left);
+            var info = new TrackingInfo(CenterEye, rightCal, leftCal, fingerBones, gesture.ignoreLeft ? Hand.right : Hand.left);
             tpProv.InitTeleport(info);
         }
         previousGestureDetected = gesture;
     }
 
-    private SortedList<string, Bone> GetBones(SortedList<string, Bone> list, OVRSkeleton hand, Hand side)
+    private SortedList<string, Bone> GetBones(SortedList<string, Bone> list, OVRSkeleton hand, HandCalibrator calibrator, Hand side)
     {
         bool isLeft = side == Hand.left;
         foreach (var bone in hand.Bones)
         {
-            var b = new Bone(hand, bone, isLeft);
+            var b = new Bone(bone, calibrator, isLeft);
             list.Add(b.ToID(), b);
         }
 
@@ -317,7 +307,7 @@ public class GestureRecognizer : MonoBehaviour
         previousGestureDetected = defaultGesture;
     }
 
-    private void SaveAsGesture(float size)
+    private void SaveAsGesture()
     {
         Gesture g = new Gesture("new gesture");
         List<Bone> data = new List<Bone>();
@@ -328,31 +318,26 @@ public class GestureRecognizer : MonoBehaviour
 
         g.fingerData = data;
 
-        g.SetSize(size);
         g.handPosLeft = GetPalmNormal(GetFingers(Hand.left));
         g.handPosRight = GetPalmNormal(GetFingers(Hand.right));
         SavedGestures.Add(g);
 
         StartCoroutine(network.Post(g.ToJson()));
         QuestDebug.Instance.Log("new gesture saved", true);
-        Invoke("ReloadGestures", 1);
-        QuestDebug.Instance.Log("new gesture saved");
-        ws.Send("done");
+        ReloadGestures();
     }
 
-    private void ReloadGestures(float average)
+    private void ReloadGestures()
     {
-        StartCoroutine(network.GetGestures(this, average));
+        StartCoroutine(network.GetGestures(this));
         QuestDebug.Instance.Log("reloaded", true);
     }
 
     private void MessageReceived(object sender, MessageEventArgs e)
     {
-        string saveCmd = "save";
-        if (saveCmd.Equals(e.Data))
-        {
-            shouldSave = true;
-        }
+        Debug.Log("message received");
+        Debug.Log(e);
+        shouldSave = true;
     }
 
     private Gesture Recognize()
@@ -365,18 +350,14 @@ public class GestureRecognizer : MonoBehaviour
             return bestMatch;
         }
 
-        // TODO: Remove
-        if (forceGesture != null)
+        // TODO: remove
+        if (forceGesture != null && Application.isEditor)
         {
             var gest = SavedGestures.Find((g) =>
             {
                 return forceGesture.name.Equals(g.name);
             });
-            if (gest != null)
-            {
-                Debug.Log("forced gesture: " + gest.name);
-                return gest;
-            }
+            if (gest != null) return gest;
         }
 
         // filter by type if only one type is allowed
@@ -423,7 +404,7 @@ public class GestureRecognizer : MonoBehaviour
     {
         if (Application.isEditor)
         {
-            var b = new Bone(skeletonLeft, new OVRBone(OVRSkeleton.BoneId.Hand_Start, 0, transform), true);
+            var b = new Bone(new OVRBone(OVRSkeleton.BoneId.Hand_Start, 0, transform), leftCal, true);
             return new Bone[] { b, b, b };
         }
 
@@ -451,6 +432,7 @@ public class GestureRecognizer : MonoBehaviour
         {
             var storedFinger = gesture.fingerData[i];
             var finger = fingerBones[storedFinger.ToID()];
+            Assert.IsNotNull(finger);
 
             // is finger ignored
             if ((gesture.ignoreLeft && finger.isLeftHand) || (gesture.ignoreRight && !finger.isLeftHand))
@@ -459,8 +441,14 @@ public class GestureRecognizer : MonoBehaviour
                 continue;
             }
 
+            HandCalibrator cal = finger.isLeftHand ? leftCal : rightCal;
+            var hand = cal.hand;
             Vector3 currentData = finger.GetRelativePosition();
-            float distance = Vector3.Distance(currentData, storedFinger.position);
+
+            cal.DebugPosition(hand.transform.TransformPoint(storedFinger.position * cal.AverageSize), Color.green);
+            cal.DebugPosition(hand.transform.TransformPoint(currentData), Color.yellow);
+
+            float distance = Vector3.Distance(currentData, storedFinger.position * cal.AverageSize);
             if (distance > maxFingerDist)
             {
                 gesture.time = 0f;

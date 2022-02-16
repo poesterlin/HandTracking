@@ -1222,7 +1222,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   productionServer: https://vr.oesterlin.dev
   devServer: http://192.168.0.194:3000
-  productionSettings: 1
+  productionSettings: 0
 --- !u!4 &2123747568
 Transform:
   m_ObjectHideFlags: 0

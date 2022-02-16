@@ -20,13 +20,13 @@ public enum TransporterState
 
 public class TrackingInfo
 {
-    OVRSkeleton rightHand;
-    OVRSkeleton leftHand;
+    HandCalibrator rightHand;
+    HandCalibrator leftHand;
     SortedList<string, Bone> fingerBones;
     Hand recognizedHand;
     Camera headset;
 
-    public TrackingInfo(Camera centerCamera, OVRSkeleton right, OVRSkeleton left, SortedList<string, Bone> bones, Hand hand)
+    public TrackingInfo(Camera centerCamera, HandCalibrator right, HandCalibrator left, SortedList<string, Bone> bones, Hand hand)
     {
         rightHand = right;
         leftHand = left;
@@ -41,7 +41,7 @@ public class TrackingInfo
         {
             return fingerBones[id + "-" + hand];
         }
-        var fakeBone = new Bone(new OVRSkeleton(), new OVRBone((OVRSkeleton.BoneId)id, 0, headset.transform), true);
+        var fakeBone = new Bone(new OVRBone((OVRSkeleton.BoneId)id, 0, headset.transform), leftHand, true);
         return fakeBone;
     }
 
@@ -69,8 +69,8 @@ public class TrackingInfo
         return headset;
     }
 
-    public OVRSkeleton getRightHand() => rightHand;
-    public OVRSkeleton getLeftHand() => leftHand;
+    public OVRSkeleton getRightHand() => rightHand.skeleton;
+    public OVRSkeleton getLeftHand() => leftHand.skeleton;
 }
 
 public class FingerTeleport : Teleporter
@@ -83,53 +83,50 @@ public class FingerTeleport : Teleporter
         maxIndex = 1;
     }
 
-    public override void init(TrackingInfo track)
+    public override void Init(TrackingInfo track)
     {
         anchorF = track.getFinger(8);
         anchorH = track.getCurrentHand();
-        base.init(track);
+        base.Init(track);
     }
 
-    public override void abort()
+    public override void Abort()
     {
-        base.abort();
+        base.Abort();
         anchorF = null;
         anchorH = null;
     }
 
-    public override void update()
+    public override void Update()
     {
         Vector3 start = anchorH.transform.position;
         Vector3 dir = anchorF.Finger.Transform.TransformDirection(Vector3.right);
-        if (index == 0)
+        if (Physics.Raycast(start, dir, out RaycastHit hit, maxDistance, layerMask))
         {
-            if (Physics.Raycast(start, dir, out RaycastHit hit, maxDistance, layerMask))
-            {
-                UpdateTarget(hit.point, 0.3f);
+            UpdateTarget(hit.point, 0.3f);
 
-                line.enabled = true;
-                line.positionCount = 2;
-                line.SetPosition(0, start);
-                line.SetPosition(1, target);
+            line.enabled = true;
+            line.positionCount = 2;
+            line.SetPosition(0, start);
+            line.SetPosition(1, target);
 
-                reticle.activate();
-                updateState(TransporterState.avaliable);
-            }
-            else if (SimulateProjectile(start, dir))
-            {
-                line.enabled = true;
-                reticle.activate();
-                updateState(TransporterState.avaliable);
-            }
-            else
-            {
-                base.update();
-            }
+            reticle.activate();
+            UpdateState(TransporterState.avaliable);
+        }
+        else if (SimulateProjectile(start, dir))
+        {
+            line.enabled = true;
+            reticle.activate();
+            UpdateState(TransporterState.avaliable);
+        }
+        else
+        {
+            base.Update();
         }
 
-        if (index == 1 && target != Vector3.zero)
+        if (index == 1 && State >= TransporterState.avaliable && target != Vector3.zero)
         {
-            updateState(TransporterState.confirmed);
+            UpdateState(TransporterState.confirmed);
         }
     }
 }
@@ -144,15 +141,15 @@ public class PalmTeleport : Teleporter
         maxIndex = 1;
     }
 
-    public override void init(TrackingInfo trackInfo)
+    public override void Init(TrackingInfo trackInfo)
     {
         track = trackInfo;
-        base.init(trackInfo);
+        base.Init(trackInfo);
     }
 
-    public override void abort()
+    public override void Abort()
     {
-        base.abort();
+        base.Abort();
     }
 
     private Plane updatePlane(Hand hand)
@@ -172,7 +169,7 @@ public class PalmTeleport : Teleporter
         return bone.GetTransform().position;
     }
 
-    public override void update()
+    public override void Update()
     {
         Plane pR = updatePlane(track.GetRecognizedHand());
         Vector3 start = pos(track.getFinger(9));
@@ -189,23 +186,23 @@ public class PalmTeleport : Teleporter
                 line.SetPosition(1, target);
 
                 reticle.activate();
-                updateState(TransporterState.avaliable);
+                UpdateState(TransporterState.avaliable);
             }
             else if (SimulateProjectile(start, pR.normal))
             {
                 line.enabled = true;
                 reticle.activate();
-                updateState(TransporterState.avaliable);
+                UpdateState(TransporterState.avaliable);
             }
             else
             {
-                base.update();
+                base.Update();
             }
         }
 
-        if (index == 1 && target != Vector3.zero)
+        if (index == 1 && State >= TransporterState.avaliable && target != Vector3.zero)
         {
-            updateState(TransporterState.confirmed);
+            UpdateState(TransporterState.confirmed);
         }
     }
 }
@@ -220,15 +217,15 @@ public class TriangleTeleport : Teleporter
         maxIndex = 1;
     }
 
-    public override void init(TrackingInfo trackInfo)
+    public override void Init(TrackingInfo trackInfo)
     {
         track = trackInfo;
-        base.init(trackInfo);
+        base.Init(trackInfo);
     }
 
-    public override void abort()
+    public override void Abort()
     {
-        base.abort();
+        base.Abort();
     }
 
     private Plane updatePlane()
@@ -245,7 +242,7 @@ public class TriangleTeleport : Teleporter
         return bone.GetTransform().position;
     }
 
-    public override void update()
+    public override void Update()
     {
         if (index == 0)
         {
@@ -263,23 +260,23 @@ public class TriangleTeleport : Teleporter
                 line.SetPosition(1, target);
 
                 reticle.activate();
-                updateState(TransporterState.avaliable);
+                UpdateState(TransporterState.avaliable);
             }
             else if (SimulateProjectile(start, p.normal))
             {
                 line.enabled = true;
                 reticle.activate();
-                updateState(TransporterState.avaliable);
+                UpdateState(TransporterState.avaliable);
             }
             else
             {
-                base.update();
+                base.Update();
             }
         }
 
-        if (index == 1 && target != Vector3.zero)
+        if (index == 1 && State >= TransporterState.avaliable && target != Vector3.zero)
         {
-            updateState(TransporterState.confirmed);
+            UpdateState(TransporterState.confirmed);
         }
     }
 }

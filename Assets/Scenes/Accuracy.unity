@@ -638,7 +638,7 @@ MonoBehaviour:
   OnAbort:
     m_PersistentCalls:
       m_Calls: []
-  keepReticle: 1
+  keepReticle: 0
   minDistance: 0
 --- !u!4 &661298123
 Transform:
@@ -718,12 +718,13 @@ MonoBehaviour:
   server: wss://vr.oesterlin.dev:9004
   skeletonLeft: {fileID: 481306095}
   skeletonRight: {fileID: 646032766}
-  left: {fileID: 481306087}
-  right: {fileID: 646032758}
+  leftCal: {fileID: 481306087}
+  rightCal: {fileID: 646032758}
   CenterEye: {fileID: 1894006114}
   SavedGestures: []
   gestureThreshold: 0.17
   timeDelay: 0.3
+  TrackingThreshold: 1
   ignoredFingerPenalty: 0.015
   forceGesture:
     name: 
@@ -738,7 +739,6 @@ MonoBehaviour:
     handPosLeft: {x: 0, y: 0, z: 0}
     handPosRight: {x: 0, y: 0, z: 0}
     time: 0
-    size: 
   tpProv: {fileID: 661298122}
   disabled: 0
   leftHandBase: {x: 0, y: 0, z: 0}
@@ -765,6 +765,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 2091336563}
     m_Modifications:
+    - target: {fileID: 6248442800717012166, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
+      propertyPath: m_Text
+      value: "Teleportiere dich auf das markierte Ziel und warte auf die gr\xFCne
+        Markierung."
+      objectReference: {fileID: 0}
     - target: {fileID: 6248442801881937774, guid: 449fe1ea3a57a3349b094572a0a252c0, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -1154,7 +1159,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   productionServer: https://vr.oesterlin.dev
   devServer: http://192.168.0.194:3000
-  productionSettings: 1
+  productionSettings: 0
 --- !u!4 &2123747568
 Transform:
   m_ObjectHideFlags: 0

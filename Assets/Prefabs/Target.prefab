@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3911605633366138008}
   - component: {fileID: 1514928583965992979}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Target
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partSys: {fileID: 5790538037825652436}
-  complete:
+  OnComplete:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1 &665052827920097588
@@ -4864,7 +4864,7 @@ GameObject:
   - component: {fileID: 5874467989844921040}
   - component: {fileID: 6696400834102484521}
   - component: {fileID: 4415614741680930244}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}

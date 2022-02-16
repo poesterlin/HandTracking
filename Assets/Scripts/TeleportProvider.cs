@@ -7,7 +7,7 @@ using UnityEngine.Events;
 
 public abstract class Teleporter
 {
-    public TransporterState state { get { return _state; } }
+    public TransporterState State { get { return _state; } }
     private TransporterState _state = TransporterState.none;
 
     public UnityEvent onSateChange = new UnityEvent();
@@ -38,26 +38,26 @@ public abstract class Teleporter
 
     ~Teleporter()
     {
-        abort();
+        Abort();
     }
 
-    public virtual void abort()
+    public virtual void Abort()
     {
-        reset();
+        Reset();
         UnityEngine.Object.Destroy(reticleInstance);
         oldReticles.ForEach((r) =>
         {
             UnityEngine.Object.Destroy(r);
         });
-        updateState(TransporterState.aborted);
+        UpdateState(TransporterState.aborted);
     }
 
-    public virtual void init(TrackingInfo track)
+    public virtual void Init(TrackingInfo track)
     {
-        updateState(TransporterState.none);
+        UpdateState(TransporterState.none);
     }
 
-    public void debugPosition(Vector3 pos)
+    public void DebugPosition(Vector3 pos)
     {
         GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         obj.transform.position = pos;
@@ -88,33 +88,33 @@ public abstract class Teleporter
         return hit;
     }
 
-    protected void updateState(TransporterState newState)
+    protected void UpdateState(TransporterState newState)
     {
-        if (state != newState)
+        if (State != newState)
         {
             _state = newState;
             onSateChange.Invoke();
-            QuestDebug.Instance.Log("state: " + newState);
+            QuestDebug.Instance.Log("state: " + newState, true);
         }
     }
 
-    public virtual void update()
+    public virtual void Update()
     {
-        reset();
+        Reset();
     }
 
-    public bool hasIndex(int n) => n <= maxIndex/*  && n > index */;
+    public bool HasIndex(int n) => n <= maxIndex/*  && n > index */;
 
-    public void setIndex(int n)
+    public void SetIndex(int n)
     {
         index = n;
         QuestDebug.Instance.Log("new index: " + index);
     }
 
-    internal void reset(bool keepReticle = false)
+    internal void Reset(bool keepReticle = false)
     {
-        updateState(TransporterState.none);
-        setIndex(0);
+        UpdateState(TransporterState.none);
+        SetIndex(0);
         target = Vector3.zero;
         line.enabled = false;
         if (keepReticle)
@@ -137,6 +137,11 @@ public abstract class Teleporter
             target = Vector3.Lerp(target, newTarget, smoothing);
         }
         reticle.transform.position = target;
+    }
+
+    internal bool CanTeleport()
+    {
+        return index == maxIndex && State == TransporterState.confirmed && target != Vector3.zero;
     }
 }
 
@@ -183,7 +188,7 @@ public class TeleportProvider : MonoBehaviour
     {
         if (method != null)
         {
-            method.init(track);
+            method.Init(track);
             QuestDebug.Instance.Log("initiating teleport", true);
         }
         else
@@ -194,56 +199,57 @@ public class TeleportProvider : MonoBehaviour
 
     private IEnumerator ConfirmTeleport()
     {
+        yield return new WaitForSeconds(0.1f);
         if (teleportBlock)
         {
-            yield return new WaitForSeconds(0.1f);
-            var offset = Vector3.Scale(Camera.transform.position - player.transform.position, new Vector3(1, 0, 1));
-            player.transform.position = new Vector3(target.x, character.height / 2.0f, target.z) - offset;
-            player.Teleported = true;
-            player.enabled = true;
-            // character.enabled = true;
+            // var offset = Vector3.Scale(Camera.transform.position - player.transform.position, new Vector3(1, 0, 1));
+            // player.transform.position = new Vector3(target.x, character.height / 2.0f, target.z) - offset;
+            // player.Teleported = true;
+            // player.enabled = true;
+            // // character.enabled = true;
 
-            teleportBlock = false;
-            lastTeleport = DateTime.Now;
-            OnTeleport.Invoke(player.transform.position);
+            // teleportBlock = false;
+            // lastTeleport = DateTime.Now;
+            // OnTeleport.Invoke(player.transform.position);
         }
     }
 
     public bool UpdateAndTryTeleport(int index)
     {
-        if (method == null || teleportBlock)
+        if (method == null)
         {
             return false;
         }
 
-        if (method.hasIndex(index))
+        if (method.HasIndex(index))
         {
-            method.setIndex(index);
+            method.SetIndex(index);
         }
 
         // update method to calculate target and set state
-        method.update();
+        method.Update();
+
+        var timeThresholdReached = lastTeleport.AddSeconds(teleportDelay).CompareTo(DateTime.Now) < 0;
+        var distanceThresholdReached = minDistance == 0f || Vector3.Distance(method.target, player.transform.position) > minDistance;
 
         // method has found a target
-        if (method.state == TransporterState.confirmed && lastTeleport.AddSeconds(teleportDelay).CompareTo(DateTime.Now) < 0 && (minDistance == 0f || Vector3.Distance(method.target, player.transform.position) > minDistance))
+        if (method.CanTeleport() && timeThresholdReached && distanceThresholdReached)
         {
-            // block teleport call until current lock is released
-            teleportBlock = true;
-
-            // disable controll
-            player.enabled = false;
-            character.enabled = false;
-
             target = method.target;
 
             // reset method to ready state
-            method.reset(keepReticle);
+            method.Reset(keepReticle);
 
-            StartCoroutine(ConfirmTeleport());
+            var offset = Vector3.Scale(Camera.transform.position - player.transform.position, new Vector3(1, 0, 1));
+            player.transform.position = new Vector3(target.x, character.height / 2.0f, target.z) - offset;
+
+            lastTeleport = DateTime.Now;
+            OnTeleport.Invoke(player.transform.position);
             return true;
         }
         else
         {
+            teleportBlock = false;
             QuestDebug.Instance.Log("teleport not executed");
         }
 
@@ -254,7 +260,7 @@ public class TeleportProvider : MonoBehaviour
     {
         if (method != null)
         {
-            method.abort();
+            method.Abort();
             method = null;
             QuestDebug.Instance.Log("aborting teleport", true);
             OnAbort.Invoke();
@@ -273,6 +279,6 @@ public class TeleportProvider : MonoBehaviour
             return TransporterState.none;
         }
 
-        return method.state;
+        return method.State;
     }
 }

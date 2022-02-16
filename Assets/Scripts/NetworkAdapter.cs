@@ -79,22 +79,10 @@ public class NetworkAdapter
         Debug.Log("Status Code: " + request.responseCode);
     }
 
-    public IEnumerator GetGestures(GestureRecognizer inst, float size)
+    public IEnumerator GetGestures(GestureRecognizer inst)
     {
-        var getSize = "small";
-
-        if (size > 0.9f)
-        {
-            getSize = "medium";
-        }
-
-        if (size > 1.05f)
-        {
-            getSize = "large";
-        }
-
         QuestDebug.Instance.Log(ip);
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture?size=" + getSize))
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture"))
         {
             // Request and wait for the desired page.
             yield return webRequest.SendWebRequest();

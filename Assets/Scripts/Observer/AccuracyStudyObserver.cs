@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -120,7 +117,7 @@ public class AccuracyStudyObserver : StudyObserver
         var target = targetObj[targetIdx % targetObj.Length];
         var t = target.GetComponent<Target>();
         t.Select();
-        t.Focus();
+        // t.Focus();
         t.OnComplete.AddListener(SelectNextTarget);
     }
 

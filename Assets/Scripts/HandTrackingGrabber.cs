@@ -9,8 +9,16 @@ public class HandTrackingGrabber : OVRGrabber
 
     protected override void Start()
     {
+        m_parentTransform = gameObject.transform;
         base.Start();
         m_hand = GetComponent<OVRHand>();
+    }
+
+    protected override void Awake()
+    {
+        base.Awake();
+        m_anchorOffsetPosition = transform.localPosition;
+        m_anchorOffsetRotation = transform.localRotation;
     }
 
     // Update is called once per frame
@@ -24,11 +32,11 @@ public class HandTrackingGrabber : OVRGrabber
     {
         float pinchStrength = m_hand.GetFingerPinchStrength(OVRHand.HandFinger.Index);
 
-        if(!m_grabbedObj && pinchStrength > pinchThreshold && m_grabCandidates.Count > 0)
+        if (!m_grabbedObj && pinchStrength > pinchThreshold && m_grabCandidates.Count > 0)
         {
             GrabBegin();
         }
-        else if(m_grabbedObj && ! (pinchStrength > pinchThreshold))
+        else if (m_grabbedObj && !(pinchStrength > pinchThreshold))
         {
             GrabEnd();
         }
