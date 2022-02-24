@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using WebSocketSharp;
 using UnityEngine.Assertions;
+using System.Linq;
 
 [Serializable]
 public enum GestureType
@@ -123,8 +124,6 @@ public class GestureRecognizer : MonoBehaviour
 
     public string server = "vr.oesterlin.dev";
     public WebSocket ws;
-    public OVRSkeleton skeletonLeft;
-    public OVRSkeleton skeletonRight;
     public HandCalibrator leftCal;
     public HandCalibrator rightCal;
 
@@ -132,7 +131,6 @@ public class GestureRecognizer : MonoBehaviour
     public List<Gesture> SavedGestures;
     public float gestureThreshold = 0.04f;
     public float timeDelay = 0.3f;
-    public float TrackingThreshold = 1f;
     public float ignoredFingerPenalty = 0.015f;
     public Gesture forceGesture;
     public TeleportProvider tpProv;
@@ -158,8 +156,8 @@ public class GestureRecognizer : MonoBehaviour
     private void Start()
     {
         fingerBones = new SortedList<string, Bone>();
-        GetBones(fingerBones, skeletonRight, rightCal, Hand.right);
-        GetBones(fingerBones, skeletonLeft, leftCal, Hand.left);
+        GetBones(fingerBones, rightCal.skeleton, rightCal, Hand.right);
+        GetBones(fingerBones, leftCal.skeleton, leftCal, Hand.left);
 
         network = new NetworkAdapter();
         StartCoroutine(network.UpdateForceGesture(this));
@@ -170,16 +168,11 @@ public class GestureRecognizer : MonoBehaviour
         ws = new WebSocket(server);
         ws.Connect();
         ws.OnMessage += (object sender, MessageEventArgs e) => MessageReceived(sender, e);
-        ws.OnClose += (object sender, CloseEventArgs e) =>
-        {
-            Debug.Log("closing: " + e.Reason + "(" + e.Code + ")");
-            Invoke("Reconnect", 1f);
-        };
+        ws.OnClose += (object sender, CloseEventArgs e) => QuestDebug.Instance.Log("closing: " + e.Reason + "(" + e.Code + ")", true);
         ws.OnError += (object sender, ErrorEventArgs e) =>
         {
-            Debug.Log("error: " + e.Message);
-            Debug.Log(e.Exception);
-            Invoke("Reconnect", 1f);
+            QuestDebug.Instance.Log("error: " + e.Message, true);
+            QuestDebug.Instance.Log(e.Exception.ToString(), true);
         };
 
         leftCal.CalibrationDone.AddListener((size) => ReloadGestures());
@@ -188,6 +181,14 @@ public class GestureRecognizer : MonoBehaviour
 
     private void Update()
     {
+
+        if (OVRInput.GetDown(OVRInput.Button.Start))
+        {
+            ReloadGestures();
+            leftCal.SetDebug();
+            rightCal.SetDebug();
+        }
+
         if (shouldSave)
         {
             shouldSave = false;
@@ -196,21 +197,6 @@ public class GestureRecognizer : MonoBehaviour
         }
 
         if (SavedGestures == null) { return; }
-
-        // at least one hand has to be recognized with a high confidence
-        // if ((!skeletonLeft.IsDataHighConfidence || !skeletonRight.IsDataHighConfidence) && !Application.isEditor)
-        // {
-        //     if (TrackingLostTime > TrackingThreshold)
-        //     {
-        //         QuestDebug.Instance.Log("abort on low confidence", true);
-        //         AbortCurrentGesture();
-        //         return;
-        //     }
-        //     TrackingLostTime += Time.deltaTime;
-        //     return;
-        // }
-
-        // TrackingLostTime = 0f;
 
         // abort if the teleport method is in an error state
         if (tpProv.GetCurrentTeleporterState() == TransporterState.aborted)
@@ -221,14 +207,6 @@ public class GestureRecognizer : MonoBehaviour
 
         // try to recognize the current gesture
         Gesture gesture = Recognize();
-
-        // // soft abort if default gesture is newly recognized
-        // if (tpProv.IsMethodSet() && gesture.type == defaultGesture.type && previousGestureDetected.type != gesture.type)
-        // {
-        //     QuestDebug.Instance.Log("abort on default", true);
-        //     AbortCurrentGesture(true);
-        //     return;
-        // }
 
         if (!tpProv.IsMethodSet() && gesture.type != defaultGesture.type)
         {
@@ -251,10 +229,10 @@ public class GestureRecognizer : MonoBehaviour
             if (teleportExecuted)
             {
                 QuestDebug.Instance.Log("teleport confirmed", true);
-                previousGestureDetected = SavedGestures.Find((g) => g.type == gesture.type && g.gestureIndex == 0);
-                previousGestureDetected.time = timeDelay;
-                gesture.time = 0f;
-                return;
+                // previousGestureDetected = SavedGestures.Find((g) => g.type == gesture.type && g.gestureIndex == 0);
+                // previousGestureDetected.time = timeDelay;
+                // gesture.time = 0f;
+                // return;
             }
 
             if (tpProv.GetCurrentTeleporterState() == TransporterState.aborted)
@@ -368,15 +346,36 @@ public class GestureRecognizer : MonoBehaviour
             return couldBeNext && allowed;
         });
 
+        var dict = new Dictionary<int, Tuple<float, int>>();
         // detect what gesture is shown
         foreach (var gesture in filtered)
         {
+            // bool sameTypeDifferentIndex = previousGestureDetected.type == gesture.type && previousGestureDetected.gestureIndex != gesture.gestureIndex;
+            // float maxFingerDist = sameTypeDifferentIndex ? gestureThreshold * 1.5f : gestureThreshold;
             float dist = DistanceBetweenGestures(gesture, gestureThreshold);
             bool validResult = dist > 0 && dist < Mathf.Infinity;
-            if (validResult && dist < minSumDistances)
+            if (validResult)
+            {
+                if (!dict.ContainsKey(gesture.gestureIndex))
+                {
+                    dict.Add(gesture.gestureIndex, new Tuple<float, int>(dist, 1));
+                }
+                else
+                {
+                    var val = dict[gesture.gestureIndex];
+                    dict[gesture.gestureIndex] = new Tuple<float, int>(val.Item1 + dist, val.Item2 + 1);
+                }
+            }
+
+        }
+
+        foreach (KeyValuePair<int, Tuple<float, int>> entry in dict)
+        {
+            float dist = entry.Value.Item1 / entry.Value.Item2;
+            if (dist < minSumDistances)
             {
                 minSumDistances = dist;
-                bestMatch = gesture;
+                bestMatch = filtered.Find((g) => g.gestureIndex == entry.Key);
             }
         }
 
@@ -390,6 +389,10 @@ public class GestureRecognizer : MonoBehaviour
         // set time delay
         bestMatch.time += Time.deltaTime;
 
+        // reduce time delay after default gesture 
+        bool isSameType = previousGestureDetected.type != bestMatch.type;
+        bool isDefault = bestMatch == defaultGesture;
+        float delay = isSameType ? 0 : isDefault ? timeDelay / 2 : timeDelay;
         if (bestMatch.time < timeDelay)
         {
             // gesture still needs time
@@ -444,16 +447,20 @@ public class GestureRecognizer : MonoBehaviour
             HandCalibrator cal = finger.isLeftHand ? leftCal : rightCal;
             var hand = cal.hand;
             Vector3 currentData = finger.GetRelativePosition();
-
-            cal.DebugPosition(hand.transform.TransformPoint(storedFinger.position * cal.AverageSize), Color.green);
-            cal.DebugPosition(hand.transform.TransformPoint(currentData), Color.yellow);
-
-            float distance = Vector3.Distance(currentData, storedFinger.position * cal.AverageSize);
-            if (distance > maxFingerDist)
+            cal.WeightDict.TryGetValue(storedFinger.id, out float weight);
+            if (gesture.type == GestureType.TriangleGesture)
+            {
+                weight += 0.1f;
+            }
+            var point = storedFinger.position * cal.AverageSize;
+            var maxDist = weight * maxFingerDist;
+            cal.DebugPosition(hand.transform.TransformPoint(point), Color.green, maxDist);
+            float distance = Vector3.Distance(currentData, point);
+            if (distance > maxDist)
             {
                 gesture.time = 0f;
                 QuestDebug.Instance.Log("--- abort gesture: " + gesture.name);
-                QuestDebug.Instance.Log("distance above threshold (max " + maxFingerDist + ") :" + distance + " for finger " + storedFinger.id + (storedFinger.isLeftHand ? " (left)" : " (right)"));
+                QuestDebug.Instance.Log("distance above threshold (max " + weight * maxFingerDist + ") :" + distance + " for finger " + storedFinger.id + (storedFinger.isLeftHand ? " (left)" : " (right)"));
                 return Mathf.Infinity;
             }
 

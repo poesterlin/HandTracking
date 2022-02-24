@@ -29,6 +29,7 @@ public class CounterBallanceRecord
 
     public static CounterBallanceRecord CreateFromJSON(string jsonString)
     {
+        Debug.Log(jsonString);
         return JsonUtility.FromJson<CounterBallanceRecord>(jsonString);
     }
 }

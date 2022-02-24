@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Events;
 
 public abstract class Teleporter
@@ -21,6 +22,7 @@ public abstract class Teleporter
     protected float maxDistance;
     protected int index = 0;
     protected int maxIndex = 0;
+    protected bool teleported = false;
     protected ProjectileSimulator simulator;
     protected List<GameObject> oldReticles = new List<GameObject>();
 
@@ -36,19 +38,22 @@ public abstract class Teleporter
         reticle.deactivate();
     }
 
-    ~Teleporter()
-    {
-        Abort();
-    }
+    // ~Teleporter()
+    // {
+    //     Abort();
+    // }
 
     public virtual void Abort()
     {
         Reset();
-        UnityEngine.Object.Destroy(reticleInstance);
-        oldReticles.ForEach((r) =>
-        {
-            UnityEngine.Object.Destroy(r);
-        });
+        if (reticleInstance != null)
+            UnityEngine.Object.Destroy(reticleInstance);
+        if (oldReticles != null)
+            oldReticles.ForEach((r) =>
+            {
+                if (r != null)
+                    UnityEngine.Object.Destroy(r);
+            });
         UpdateState(TransporterState.aborted);
     }
 
@@ -107,14 +112,20 @@ public abstract class Teleporter
 
     public void SetIndex(int n)
     {
+        // reset teleport flag
+        if (n < index)
+        {
+            teleported = false;
+            QuestDebug.Instance.Log("reset teleport flag", true);
+        }
         index = n;
         QuestDebug.Instance.Log("new index: " + index);
     }
 
-    internal void Reset(bool keepReticle = false)
+    internal void Reset(bool keepReticle = false, int state = 0)
     {
         UpdateState(TransporterState.none);
-        SetIndex(0);
+        SetIndex(state);
         target = Vector3.zero;
         line.enabled = false;
         if (keepReticle)
@@ -141,7 +152,13 @@ public abstract class Teleporter
 
     internal bool CanTeleport()
     {
-        return index == maxIndex && State == TransporterState.confirmed && target != Vector3.zero;
+        bool evaluation = index == maxIndex && State == TransporterState.confirmed && target != Vector3.zero;
+        return evaluation && !teleported;
+    }
+
+    internal bool WasTeleported()
+    {
+        return teleported = true;
     }
 }
 
@@ -197,23 +214,6 @@ public class TeleportProvider : MonoBehaviour
         }
     }
 
-    private IEnumerator ConfirmTeleport()
-    {
-        yield return new WaitForSeconds(0.1f);
-        if (teleportBlock)
-        {
-            // var offset = Vector3.Scale(Camera.transform.position - player.transform.position, new Vector3(1, 0, 1));
-            // player.transform.position = new Vector3(target.x, character.height / 2.0f, target.z) - offset;
-            // player.Teleported = true;
-            // player.enabled = true;
-            // // character.enabled = true;
-
-            // teleportBlock = false;
-            // lastTeleport = DateTime.Now;
-            // OnTeleport.Invoke(player.transform.position);
-        }
-    }
-
     public bool UpdateAndTryTeleport(int index)
     {
         if (method == null)
@@ -238,7 +238,8 @@ public class TeleportProvider : MonoBehaviour
             target = method.target;
 
             // reset method to ready state
-            method.Reset(keepReticle);
+            method.Reset(keepReticle, index);
+            method.WasTeleported();
 
             var offset = Vector3.Scale(Camera.transform.position - player.transform.position, new Vector3(1, 0, 1));
             player.transform.position = new Vector3(target.x, character.height / 2.0f, target.z) - offset;

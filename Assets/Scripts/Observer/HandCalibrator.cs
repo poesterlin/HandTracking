@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Events;
 using static OVRSkeleton;
 
@@ -19,18 +21,19 @@ public class HandCalibrator : MonoBehaviour
     public UnityEvent<float> CalibrationDone = new UnityEvent<float>();
     private Queue<GameObject> joints;
     public int queueSize = 100;
+    private bool debug = false;
 
+    public Dictionary<BoneId, float> WeightDict { get; private set; }
 
     void Start()
     {
         network = new NetworkAdapter();
-
-        // fingers.Add(GetFingerBones(BoneId.Hand_Start, BoneId.Hand_WristRoot, BoneId.Hand_Index1, BoneId.Hand_Index2, BoneId.Hand_Index3));
-        fingers.Add(GetFingerBones(BoneId.Hand_Start, BoneId.Hand_WristRoot, BoneId.Hand_Middle1, BoneId.Hand_Middle2, BoneId.Hand_Middle3));
-        // fingers.Add(GetFingerBones(BoneId.Hand_Start, BoneId.Hand_WristRoot, BoneId.Hand_Ring1, BoneId.Hand_Ring2, BoneId.Hand_Ring3));
-        // fingers.Add(GetFingerBones(BoneId.Hand_Start, BoneId.Hand_WristRoot, BoneId.Hand_Pinky1, BoneId.Hand_Pinky2, BoneId.Hand_Pinky3));
-
+        fingers.Add(GetFingerBones(BoneId.Hand_Start, BoneId.Hand_WristRoot, BoneId.Hand_Middle1, BoneId.Hand_Middle2, BoneId.Hand_Middle3, BoneId.Hand_MiddleTip));
+        fingers.Add(GetFingerBones(BoneId.Hand_Start, BoneId.Hand_Index3, BoneId.Hand_Ring3));
+        fingers.Add(GetFingerBones(BoneId.Hand_Start, BoneId.Hand_WristRoot, BoneId.Hand_Thumb0));
         joints = new Queue<GameObject>(queueSize);
+
+        InitDict();
     }
 
     // Update is called once per frame
@@ -38,22 +41,23 @@ public class HandCalibrator : MonoBehaviour
     {
         if (Application.isEditor)
         {
-            AddToAverageSize(Random.Range(0.9f, 1.2f));
+            AddToAverageSize(UnityEngine.Random.Range(0.5f, 0.7f));
             return;
         }
 
         if (hand.IsTracked && hand.IsDataHighConfidence)
         {
             // AddToAverageSize(hand.HandScale);
-            float sum = 0;
-            foreach (var finger in fingers)
-            {
-                sum += GetFingerLength(finger);
-            }
+            var sum = GetFingerLength(fingers[0]);
             AddToAverageSize(sum);
         }
-
     }
+
+    public void SetDebug()
+    {
+        debug = !debug;
+    }
+
 
     private void AddToAverageSize(float size)
     {
@@ -86,14 +90,15 @@ public class HandCalibrator : MonoBehaviour
         {
             Vector3 pos = bone.Transform.position;
             sum += Vector3.Distance(last, pos);
-            // DebugPosition(pos, Color.blue);
+            DebugPosition(pos, Color.blue);
             last = pos;
         }
         return sum;
     }
 
-    public void DebugPosition(Vector3 pos, Color col)
+    public void DebugPosition(Vector3 pos, Color col, float size = 0.01f)
     {
+        if (!debug) return;
         GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
         joints.Enqueue(obj);
@@ -102,9 +107,52 @@ public class HandCalibrator : MonoBehaviour
             Destroy(joints.Dequeue());
         }
 
-        obj.GetComponent<Renderer>().material.color = col;
+        col.a = 0.2f;
+        var material = obj.GetComponent<Renderer>().material;
+        material.color = col;
+
+        material.SetOverrideTag("RenderType", "Transparent");
+        material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+        material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        material.SetFloat("_ZWrite", 0.0f);
+        material.DisableKeyword("_ALPHATEST_ON");
+        material.DisableKeyword("_ALPHABLEND_ON");
+        material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+
         obj.transform.position = pos;
-        obj.transform.localScale = 0.01f * Vector3.one;
+        obj.transform.localScale = Math.Min(size, 0.1f) * Vector3.one;
         obj.GetComponent<Collider>().enabled = false;
+    }
+
+    public void InitDict()
+    {
+        WeightDict = new Dictionary<BoneId, float>();
+
+        float full = 1, med = 1.3f, little = 1.6f, none = 10f;
+
+        WeightDict.Add(BoneId.Hand_WristRoot, little);
+        WeightDict.Add(BoneId.Hand_ForearmStub, none);
+        WeightDict.Add(BoneId.Hand_Thumb0, med);
+        WeightDict.Add(BoneId.Hand_Thumb1, full);
+        WeightDict.Add(BoneId.Hand_Thumb2, full);
+        WeightDict.Add(BoneId.Hand_Thumb3, full);
+        WeightDict.Add(BoneId.Hand_Index1, full);
+        WeightDict.Add(BoneId.Hand_Index2, full);
+        WeightDict.Add(BoneId.Hand_Index3, full);
+        WeightDict.Add(BoneId.Hand_Middle1, full);
+        WeightDict.Add(BoneId.Hand_Middle2, med);
+        WeightDict.Add(BoneId.Hand_Middle3, full);
+        WeightDict.Add(BoneId.Hand_Ring1, full);
+        WeightDict.Add(BoneId.Hand_Ring2, full);
+        WeightDict.Add(BoneId.Hand_Ring3, full);
+        WeightDict.Add(BoneId.Hand_Pinky0, med);
+        WeightDict.Add(BoneId.Hand_Pinky1, med);
+        WeightDict.Add(BoneId.Hand_Pinky2, med);
+        WeightDict.Add(BoneId.Hand_Pinky3, little);
+        WeightDict.Add(BoneId.Hand_ThumbTip, full);
+        WeightDict.Add(BoneId.Hand_IndexTip, med);
+        WeightDict.Add(BoneId.Hand_MiddleTip, med);
+        WeightDict.Add(BoneId.Hand_RingTip, med);
+        WeightDict.Add(BoneId.Hand_PinkyTip, med);
     }
 }

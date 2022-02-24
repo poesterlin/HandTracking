@@ -8,7 +8,7 @@ public class PotionManager : MonoBehaviour
     public Mortar mortar;
     public Vector3[] positions = new Vector3[8];
     public GameObject potionPrefab;
-
+    public GameObject flask;
     public ForrestStudyObserver observer;
     public OVRCameraRig cameraRig;
     private NetworkAdapter network;
@@ -26,9 +26,13 @@ public class PotionManager : MonoBehaviour
     {
         if (type == GestureType.Default)
         {
+            if (flask != null)
+            {
+                Destroy(flask);
+            }
             return;
         }
-        var flask = Instantiate(potionPrefab, transform.TransformPoint(positions[count]), Quaternion.identity, transform);
+        flask = Instantiate(potionPrefab, transform.TransformPoint(positions[count]), Quaternion.identity, transform);
         var script = flask.GetComponent<Flask>();
         script.mortar = mortar;
         script.player = player;

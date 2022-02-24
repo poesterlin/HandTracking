@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
@@ -76,19 +77,26 @@ public class AccuracyStudyObserver : StudyObserver
 
     void CheckCollision(Vector3 newPos)
     {
-        var pPos = player.transform.position;
-        var target = targetObj[targetIdx];
-        var dist = Vector3.Distance(target.transform.position, pPos);
-        Debug.Log(dist + "< 0.5 * " + target.transform.localScale.x);
-        if (dist < target.transform.localScale.x / 2)
+        var target = targetObj[targetIdx % targetObj.Length];
+        var dist = Vector3.Distance(target.transform.position, newPos);
+        var t = target.GetComponent<Target>();
+        if (dist < target.transform.localScale.x)
         {
-            var t = target.GetComponent<Target>();
-            t.Focus();
+            t.OnCollision();
         }
+        else if (t.isTargeted)
+        {
+            t.OnLostCollision();
+        }
+
+
+
+        if (obstacles == null) { return; }
 
         for (int i = 0; i < obstacles.Length; i++)
         {
-            if (Vector3.Distance(obstacles[i].transform.position, pPos) < 0.4f)
+            Assert.IsNotNull(obstacles[i]);
+            if (Vector3.Distance(obstacles[i].transform.position, newPos) < 0.4f)
             {
                 StartCoroutine(network.Set("/stats/collision", "state", state, "pos", obstacles[i].transform.position));
             }
@@ -109,6 +117,7 @@ public class AccuracyStudyObserver : StudyObserver
             state += 1;
             if (state >= typeArray.Length)
             {
+                StartCoroutine(network.Set("/stats/cb-order"));
                 SceneManager.LoadScene("TakeOffHeadset");
                 return;
             }

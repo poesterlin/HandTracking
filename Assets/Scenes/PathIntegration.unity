@@ -216,28 +216,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!114 &200720921 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 513894092, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
-  m_PrefabInstance: {fileID: 254333309}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 39bccd417e5067246878b8b7d29abab5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &200720929 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 114567485750094145, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
-  m_PrefabInstance: {fileID: 254333309}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2609c54f376cffc4da1ab9401cc1a36f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &254333309
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -698,10 +676,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   server: wss://vr.oesterlin.dev:9004
-  skeletonLeft: {fileID: 1818742191}
-  skeletonRight: {fileID: 200720929}
-  left: {fileID: 1818742183}
-  right: {fileID: 200720921}
+  leftCal: {fileID: 0}
+  rightCal: {fileID: 0}
   CenterEye: {fileID: 1894006114}
   SavedGestures: []
   gestureThreshold: 0.17
@@ -720,7 +696,6 @@ MonoBehaviour:
     handPosLeft: {x: 0, y: 0, z: 0}
     handPosRight: {x: 0, y: 0, z: 0}
     time: 0
-    size: 
   tpProv: {fileID: 661298122}
   disabled: 0
   leftHandBase: {x: 0, y: 0, z: 0}
@@ -1084,28 +1059,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1818742183 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 503297303, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
-  m_PrefabInstance: {fileID: 254333309}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 39bccd417e5067246878b8b7d29abab5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1818742191 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 114567485837096957, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
-  m_PrefabInstance: {fileID: 254333309}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2609c54f376cffc4da1ab9401cc1a36f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!20 &1894006114 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 2015248, guid: ce816f2e6abb0504092c23ed9b970dfd, type: 3}
@@ -1222,7 +1175,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   productionServer: https://vr.oesterlin.dev
   devServer: http://192.168.0.194:3000
-  productionSettings: 0
+  productionSettings: 1
 --- !u!4 &2123747568
 Transform:
   m_ObjectHideFlags: 0
