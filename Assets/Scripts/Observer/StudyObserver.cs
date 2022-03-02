@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public abstract class StudyObserver : MonoBehaviour
+public interface IStudyObserver
 {
-    virtual public void SetOrder(GestureType[] order) { }
+    public void SetOrder(GestureType[] order);
 
-    public abstract GestureType GetCurrentGesture();
+    public GestureType GetCurrentGesture();
 }

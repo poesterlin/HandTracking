@@ -28198,7 +28198,6 @@ MonoBehaviour:
   state:
     Scene: 
     CurrentGesture: 0
-  observer: {fileID: 1409006384}
 --- !u!1001 &1416908595
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32690,6 +32689,14 @@ PrefabInstance:
       propertyPath: CenterEye
       value: 
       objectReference: {fileID: 463930441}
+    - target: {fileID: 2852320195602154279, guid: 938010ae41a311140907d58bc6eaf5a9, type: 3}
+      propertyPath: timeDelay
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2852320195602154279, guid: 938010ae41a311140907d58bc6eaf5a9, type: 3}
+      propertyPath: baseThreshold
+      value: 0.008
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 938010ae41a311140907d58bc6eaf5a9, type: 3}
 --- !u!1001 &6248442801567724049

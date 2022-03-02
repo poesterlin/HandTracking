@@ -2,18 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Events;
 using static OVRSkeleton;
 
-
 public class HandCalibrator : MonoBehaviour
 {
-
     public float AverageSize = 1f;
     public OVRHand hand;
     public OVRSkeleton skeleton;
-    private float[] HandSizes = new float[75 * 5]; // record for 5s at 75 frames
+    private float[] HandSizes = new float[75]; // record for 1s at 75 frames
     private int CalibrationIdx = 0;
     private NetworkAdapter network;
     private List<OVRBone[]> fingers = new List<OVRBone[]>();
@@ -23,7 +20,7 @@ public class HandCalibrator : MonoBehaviour
     public int queueSize = 100;
     private bool debug = false;
 
-    public Dictionary<BoneId, float> WeightDict { get; private set; }
+    public Dictionary<OVRSkeleton.BoneId, float> WeightDict { get; private set; }
 
     void Start()
     {
@@ -51,6 +48,11 @@ public class HandCalibrator : MonoBehaviour
             var sum = GetFingerLength(fingers[0]);
             AddToAverageSize(sum);
         }
+    }
+
+    public bool IsTrackedWell()
+    {
+        return hand.IsTracked && hand.IsDataHighConfidence;
     }
 
     public void SetDebug()
@@ -90,7 +92,7 @@ public class HandCalibrator : MonoBehaviour
         {
             Vector3 pos = bone.Transform.position;
             sum += Vector3.Distance(last, pos);
-            DebugPosition(pos, Color.blue);
+            // DebugPosition(pos, Color.blue);
             last = pos;
         }
         return sum;
@@ -107,17 +109,17 @@ public class HandCalibrator : MonoBehaviour
             Destroy(joints.Dequeue());
         }
 
-        col.a = 0.2f;
+        // col.a = 0.2f;
         var material = obj.GetComponent<Renderer>().material;
         material.color = col;
 
-        material.SetOverrideTag("RenderType", "Transparent");
-        material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-        material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        material.SetFloat("_ZWrite", 0.0f);
-        material.DisableKeyword("_ALPHATEST_ON");
-        material.DisableKeyword("_ALPHABLEND_ON");
-        material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+        // material.SetOverrideTag("RenderType", "Transparent");
+        // material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+        // material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        // material.SetFloat("_ZWrite", 0.0f);
+        // material.DisableKeyword("_ALPHATEST_ON");
+        // material.DisableKeyword("_ALPHABLEND_ON");
+        // material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
 
         obj.transform.position = pos;
         obj.transform.localScale = Math.Min(size, 0.1f) * Vector3.one;

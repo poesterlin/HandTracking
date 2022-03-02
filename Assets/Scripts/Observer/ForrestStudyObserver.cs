@@ -34,7 +34,7 @@ public class CounterBallanceRecord
     }
 }
 
-public class ForrestStudyObserver : StudyObserver
+public class ForrestStudyObserver : MonoBehaviour, IStudyObserver 
 {
     public TeleportProvider teleportProvider;
     public GestureRecognizer recognizer;
@@ -56,13 +56,16 @@ public class ForrestStudyObserver : StudyObserver
         mortar.OnPotion.AddListener(UpdateState);
         teleportProvider.OnTeleport.AddListener(AddRecord);
 
-        StartCoroutine(network.GetOrder(this));
+        recognizer.OnLoaded.AddListener(() =>
+        {
+            StartCoroutine(network.GetOrder(this));
+        });
         startPos = player.transform.position;
         AddRecord(startPos);
         ResetPosition();
     }
 
-    public override void SetOrder(GestureType[] order)
+    public void SetOrder(GestureType[] order)
     {
         typeArray = order;
         SetTeleporterState(typeArray[state]);
@@ -119,7 +122,7 @@ public class ForrestStudyObserver : StudyObserver
     void SetTeleporterState(GestureType type)
     {
         OnStateChange.Invoke(type);
-        recognizer.AllowedType = type;
+        recognizer.SetAllowedType(type);
     }
 
     void SendStats()
@@ -130,7 +133,7 @@ public class ForrestStudyObserver : StudyObserver
         StartCoroutine(network.Set("/stats/teleportRecord", "teleport", json));
     }
 
-    public override GestureType GetCurrentGesture()
+    public GestureType GetCurrentGesture()
     {
         return typeArray[state];
     }

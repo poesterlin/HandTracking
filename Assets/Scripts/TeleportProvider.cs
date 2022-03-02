@@ -99,7 +99,7 @@ public abstract class Teleporter
         {
             _state = newState;
             onSateChange.Invoke();
-            QuestDebug.Instance.Log("state: " + newState, true);
+            QuestDebug.Instance.Log("state: " + newState);
         }
     }
 
@@ -116,7 +116,7 @@ public abstract class Teleporter
         if (n < index)
         {
             teleported = false;
-            QuestDebug.Instance.Log("reset teleport flag", true);
+            // QuestDebug.Instance.Log("reset teleport flag", true);
         }
         index = n;
         QuestDebug.Instance.Log("new index: " + index);
@@ -179,8 +179,6 @@ public class TeleportProvider : MonoBehaviour
 
     public bool keepReticle = false;
 
-    private bool teleportBlock;
-
     private Vector3 target = Vector3.zero;
     private DateTime lastTeleport = DateTime.Now;
 
@@ -203,20 +201,16 @@ public class TeleportProvider : MonoBehaviour
 
     public void InitTeleport(TrackingInfo track)
     {
-        if (method != null)
+        if (IsMethodSet())
         {
             method.Init(track);
             QuestDebug.Instance.Log("initiating teleport", true);
-        }
-        else
-        {
-            QuestDebug.Instance.Log("wrong state: InitTeleport", true);
         }
     }
 
     public bool UpdateAndTryTeleport(int index)
     {
-        if (method == null)
+        if (!IsMethodSet())
         {
             return false;
         }
@@ -250,7 +244,6 @@ public class TeleportProvider : MonoBehaviour
         }
         else
         {
-            teleportBlock = false;
             QuestDebug.Instance.Log("teleport not executed");
         }
 
@@ -259,11 +252,10 @@ public class TeleportProvider : MonoBehaviour
 
     public void AbortTeleport()
     {
-        if (method != null)
+        if (IsMethodSet())
         {
             method.Abort();
             method = null;
-            QuestDebug.Instance.Log("aborting teleport", true);
             OnAbort.Invoke();
         }
     }
@@ -275,7 +267,7 @@ public class TeleportProvider : MonoBehaviour
 
     public TransporterState GetCurrentTeleporterState()
     {
-        if (method == null)
+        if (!IsMethodSet())
         {
             return TransporterState.none;
         }

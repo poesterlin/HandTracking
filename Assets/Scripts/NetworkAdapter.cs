@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Globalization;
+using UnityEngine.Assertions;
 
 public class NetworkAdapter
 {
@@ -68,9 +69,9 @@ public class NetworkAdapter
         // Debug.Log(request.downloadHandler.text);
     }
 
-    public IEnumerator Post(string bodyJsonString)
+    public IEnumerator Post(string bodyJsonString, string url = "/gesture")
     {
-        var request = new UnityWebRequest(ip + "/gesture", "POST");
+        var request = new UnityWebRequest(ip + url, "POST");
         byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
         request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
@@ -79,9 +80,9 @@ public class NetworkAdapter
         Debug.Log("Status Code: " + request.responseCode);
     }
 
-    public IEnumerator GetGestures(GestureRecognizer inst)
+    public IEnumerator GetGestures(GestureTarget inst)
     {
-        QuestDebug.Instance.Log(ip);
+        Assert.IsNotNull(ip);
         using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture"))
         {
             // Request and wait for the desired page.
@@ -93,8 +94,8 @@ public class NetworkAdapter
             }
 
             GestureList list = Gesture.CreateFromJSON(webRequest.downloadHandler.text);
-            inst.SavedGestures = new List<Gesture>(list.Gestures);
-            QuestDebug.Instance.Log("downloaded " + inst.SavedGestures.Count + " gestures", true);
+            inst.SetSavedGestures(list);
+            QuestDebug.Instance.Log("downloaded " + list.Gestures.Length + " gestures", true);
         }
     }
 
@@ -150,7 +151,7 @@ public class NetworkAdapter
         }
     }
 
-    public IEnumerator GetOrder(StudyObserver inst)
+    public IEnumerator GetOrder(IStudyObserver inst)
     {
         using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/stats/cb-order"))
         {

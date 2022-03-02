@@ -3,7 +3,7 @@ using UnityEngine.Assertions;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-public class AccuracyStudyObserver : StudyObserver
+public class AccuracyStudyObserver : MonoBehaviour, IStudyObserver 
 {
 
     public TeleportProvider teleportProvider;
@@ -33,7 +33,10 @@ public class AccuracyStudyObserver : StudyObserver
 
         teleportProvider.OnTeleport.AddListener(CheckCollision);
         startPos = player.transform.position;
-        StartCoroutine(network.GetOrder(this));
+        recognizer.OnLoaded.AddListener(() =>
+      {
+          StartCoroutine(network.GetOrder(this));
+      });
         MakeTargets();
         SelectNextTarget();
     }
@@ -130,12 +133,12 @@ public class AccuracyStudyObserver : StudyObserver
         t.OnComplete.AddListener(SelectNextTarget);
     }
 
-    public override GestureType GetCurrentGesture()
+    public GestureType GetCurrentGesture()
     {
         return (GestureType)state;
     }
 
-    public override void SetOrder(GestureType[] order)
+    public void SetOrder(GestureType[] order)
     {
         typeArray = order;
         SetTeleporterState();
@@ -144,7 +147,7 @@ public class AccuracyStudyObserver : StudyObserver
     void SetTeleporterState()
     {
         OnStateChange.Invoke(typeArray[state]);
-        recognizer.AllowedType = typeArray[state];
+        recognizer.SetAllowedType(typeArray[state]);
         recognizer.AbortCurrentGesture();
     }
 }

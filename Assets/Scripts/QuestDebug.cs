@@ -34,23 +34,21 @@ public class QuestDebug : MonoBehaviour
 
     public void Log(string msg, bool severe = false)
     {
-        try
+        var q = severe && false ? severeLogs : logs;
+        q.Enqueue(msg);
+        if (q.Count > QueueSize)
         {
-            var q = severe ? severeLogs : logs;
-            q.Enqueue(msg);
-            if (q.Count > QueueSize)
-            {
-                q.Dequeue();
-            }
-            // bool different = q.Last().Equals(msg);
-            textEl.text = "Severe Log:\n" + String.Join("\n", severeLogs) + "\nDebug Log:\n" + String.Join("\n", logs);
-            if (severe)
-            {
-                Debug.Log(msg);
-                StartCoroutine(PostLog(msg));
-            }
+            q.Dequeue();
         }
-        catch (Exception) { }
+        if (showLog)
+        {
+            textEl.text = /* "Severe Log:\n" + String.Join("\n", severeLogs) +  */"\nDebug Log:\n" + String.Join("\n", logs);
+        }
+        if (severe)
+        {
+            Debug.Log(msg);
+            StartCoroutine(PostLog(msg));
+        }
     }
 
     void HandleLog(string logString, string stackTrace, LogType type)

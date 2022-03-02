@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Callibration.unity
+    guid: 787e0233e59dd5b4dbcd08b95eceed08
+  - enabled: 1
     path: Assets/Scenes/Forrest.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1

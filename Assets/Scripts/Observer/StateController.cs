@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
 
 [Serializable]
@@ -8,7 +9,7 @@ public class State
     public string Scene;
     public GestureType CurrentGesture;
 
-    public static State GetState(StudyObserver obs)
+    public static State GetState(IStudyObserver obs)
     {
         return new State
         {
@@ -17,7 +18,7 @@ public class State
         };
     }
 
-    public void LoadState(State s, StudyObserver obs)
+    public void LoadState(State s, IStudyObserver obs)
     {
         if (!Scene.Equals(s.Scene))
         {
@@ -57,10 +58,12 @@ public class State
 public class StateController : MonoBehaviour
 {
     public State state;
-    public StudyObserver observer;
+    public IStudyObserver observer;
     private NetworkAdapter network;
     void Start()
     {
+        observer = gameObject.GetComponent<IStudyObserver>();
+        Assert.IsNotNull(observer);
         network = new NetworkAdapter();
         state = State.GetState(observer);
         StartCoroutine(network.UpdateState(this));

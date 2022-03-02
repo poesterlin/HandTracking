@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-public class PathIntegrationStudyObserver : StudyObserver
+public class PathIntegrationStudyObserver : MonoBehaviour, IStudyObserver 
 {
     public TeleportProvider teleportProvider;
     public GestureRecognizer recognizer;
@@ -22,10 +23,13 @@ public class PathIntegrationStudyObserver : StudyObserver
 
         teleportProvider.OnTeleport.AddListener(UpdateState);
         startPos = player.transform.position;
-        StartCoroutine(network.GetOrder(this));
+        recognizer.OnLoaded.AddListener(() =>
+      {
+          StartCoroutine(network.GetOrder(this));
+      });
     }
 
-    public override void SetOrder(GestureType[] order)
+    public void SetOrder(GestureType[] order)
     {
         typeArray = order;
         SetTeleporterState();
@@ -57,7 +61,7 @@ public class PathIntegrationStudyObserver : StudyObserver
     void SetTeleporterState()
     {
         OnStateChange.Invoke(typeArray[state]);
-        recognizer.AllowedType = typeArray[state];
+        recognizer.SetAllowedType(typeArray[state]);
         recognizer.AbortCurrentGesture();
         player.transform.position = startPos;
     }
@@ -74,7 +78,7 @@ public class PathIntegrationStudyObserver : StudyObserver
         SceneManager.LoadScene("TakeOffHeadset");
     }
 
-    public override GestureType GetCurrentGesture()
+    public GestureType GetCurrentGesture()
     {
         if (typeArray != null && typeArray.Length > state)
         {

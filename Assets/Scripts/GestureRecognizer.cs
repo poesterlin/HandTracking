@@ -5,6 +5,7 @@ using UnityEngine.Events;
 using WebSocketSharp;
 using UnityEngine.Assertions;
 using System.Linq;
+using static OVRSkeleton;
 
 [Serializable]
 public enum GestureType
@@ -24,15 +25,40 @@ public class GestureList
 
 
 [Serializable]
+public class JointCollection
+{
+
+    public JointCollection() { }
+    public JointCollection(Bone[] joints)
+    {
+        this.joints = joints;
+    }
+    public Bone[] joints;
+}
+
+
+
+[Serializable]
+public class Variant
+{
+    public int index;
+    public List<JointCollection> options;
+
+    [NonSerialized]
+    public float time = 0;
+}
+
+
+[Serializable]
 public class Gesture
 {
     public string name;
-    public List<Bone> fingerData; // Relative to hand
-    public UnityEvent onRecognized;
+    public List<Variant> variants;
+    public List<Bone> baseJoints;
+    public Bone[] importantJoints;
     public bool ignoreLeft = false;
     public bool ignoreRight = false;
     public GestureType type = GestureType.Default;
-    public int gestureIndex = 0;
 
     public Vector3 handPosLeft = Vector3.zero;
     public Vector3 handPosRight = Vector3.zero;
@@ -42,8 +68,7 @@ public class Gesture
     public Gesture(string gestureName)
     {
         name = gestureName;
-        fingerData = null;
-        onRecognized = new UnityEvent();
+        variants = new List<Variant>();
     }
 
     public string ToJson()
@@ -55,11 +80,6 @@ public class Gesture
     {
         return JsonUtility.FromJson<GestureList>(jsonString);
     }
-
-    public Bone getReference()
-    {
-        return fingerData.Find(finger => finger.id == OVRSkeleton.BoneId.Hand_Index2 && !finger.isLeftHand);
-    }
 }
 
 
@@ -68,13 +88,15 @@ public class Bone
 {
     [NonSerialized]
     public OVRSkeleton Hand;
+
     [NonSerialized]
-    HandCalibrator calibrator;
+    public HandCalibrator calibrator;
+
     [NonSerialized]
     public OVRBone Finger;
 
-    public bool isLeftHand;
-    public OVRSkeleton.BoneId id;
+    public bool isLeft;
+    public BoneId boneId;
     public Vector3 position;
 
     public Bone(OVRBone OVRFinger, HandCalibrator handCalibrator, bool isLeft)
@@ -83,8 +105,8 @@ public class Bone
         Assert.IsNotNull(Hand, "Hand constructor");
         calibrator = handCalibrator;
         Finger = OVRFinger;
-        isLeftHand = isLeft;
-        id = Finger.Id;
+        this.isLeft = isLeft;
+        boneId = Finger.Id;
     }
 
     public Transform GetTransform()
@@ -104,13 +126,28 @@ public class Bone
 
     public Bone Save()
     {
-        position = GetScaledPosition();
-        return this;
+        var b = new Bone(Finger, calibrator, isLeft);
+        b.position = GetScaledPosition();
+        return b;
     }
 
     public string ToID()
     {
-        return ((int)id) + "-" + (isLeftHand ? "left" : "right");
+        return MakeID(boneId, isLeft);
+    }
+
+    public static Bone FromID(string id, HandCalibrator calLeft, HandCalibrator calRight)
+    {
+        var isLeft = id.EndsWith("left");
+        OVRSkeleton.BoneId boneId = (OVRSkeleton.BoneId)int.Parse(id.Split('-')[0]);
+        var serializedBone = new Bone(new OVRBone(boneId, 0, null), isLeft ? calLeft : calRight, isLeft);
+        Assert.IsTrue(id == serializedBone.ToID());
+        return serializedBone;
+    }
+
+    public static string MakeID(OVRSkeleton.BoneId boneId, bool isLeft)
+    {
+        return ((int)boneId) + "-" + (isLeft ? "left" : "right");
     }
 
     public Vector3 GetScaledPosition()
@@ -119,69 +156,61 @@ public class Bone
     }
 }
 
-public class GestureRecognizer : MonoBehaviour
+public class GestureTarget : MonoBehaviour
 {
+    public UnityEvent OnLoaded = new UnityEvent();
+    public List<Gesture> savedGestures;
+    protected NetworkAdapter network;
 
-    public string server = "vr.oesterlin.dev";
-    public WebSocket ws;
-    public HandCalibrator leftCal;
-    public HandCalibrator rightCal;
-
-    public Camera CenterEye;
-    public List<Gesture> SavedGestures;
-    public float gestureThreshold = 0.04f;
-    public float timeDelay = 0.3f;
-    public float ignoredFingerPenalty = 0.015f;
-    public Gesture forceGesture;
-    public TeleportProvider tpProv;
-    private SortedList<string, Bone> fingerBones;
-    private GestureType? _allowedType;
-    public GestureType AllowedType
+    public virtual void Start()
     {
-        set { _allowedType = value; }
+        network = new NetworkAdapter();
+        ReloadGestures();
     }
 
-    public bool disabled;
-
-    public Vector3 leftHandBase;
-    public Vector3 rightHandBase;
-
-    private static Gesture defaultGesture = new Gesture("default");
-    private Gesture previousGestureDetected = defaultGesture;
-    private NetworkAdapter network;
-    private bool shouldSave;
-    private float TrackingLostTime;
-
-
-    private void Start()
+    public void SetSavedGestures(GestureList list)
     {
+        Assert.IsNotNull(list);
+        Assert.IsFalse(list.Gestures.Length == 0);
+        savedGestures = new List<Gesture>(list.Gestures);
+        OnLoaded.Invoke();
+    }
+
+    protected void ReloadGestures()
+    {
+        StartCoroutine(network.GetGestures(this));
+    }
+}
+
+public class GestureRecognizer : GestureTarget
+{
+    public HandCalibrator leftCal;
+    public HandCalibrator rightCal;
+    public Camera CenterEye;
+    public float timeDelay = 0.3f;
+    public Gesture forceGesture;
+    public float baseThreshold = 2f;
+    public TeleportProvider tpProv;
+    public bool disabled;
+    private SortedList<string, Bone> fingerBones;
+    private static Variant defaultVariant = new Variant();
+    private Variant previousVariantDetected = defaultVariant;
+    private Gesture currentGesture;
+
+    public override void Start()
+    {
+        base.Start();
         fingerBones = new SortedList<string, Bone>();
-        GetBones(fingerBones, rightCal.skeleton, rightCal, Hand.right);
-        GetBones(fingerBones, leftCal.skeleton, leftCal, Hand.left);
+        GestureHelper.InputBones(fingerBones, rightCal.skeleton, rightCal, Hand.right);
+        GestureHelper.InputBones(fingerBones, leftCal.skeleton, leftCal, Hand.left);
 
-        network = new NetworkAdapter();
-        StartCoroutine(network.UpdateForceGesture(this));
-        QuestDebug.Instance.Log("waiting for gestures", true);
-
+        ReloadGestures();
         tpProv.OnAbort.AddListener(() => AbortCurrentGesture());
 
-        ws = new WebSocket(server);
-        ws.Connect();
-        ws.OnMessage += (object sender, MessageEventArgs e) => MessageReceived(sender, e);
-        ws.OnClose += (object sender, CloseEventArgs e) => QuestDebug.Instance.Log("closing: " + e.Reason + "(" + e.Code + ")", true);
-        ws.OnError += (object sender, ErrorEventArgs e) =>
-        {
-            QuestDebug.Instance.Log("error: " + e.Message, true);
-            QuestDebug.Instance.Log(e.Exception.ToString(), true);
-        };
-
-        leftCal.CalibrationDone.AddListener((size) => ReloadGestures());
-        rightCal.CalibrationDone.AddListener((size) => ReloadGestures());
     }
 
     private void Update()
     {
-
         if (OVRInput.GetDown(OVRInput.Button.Start))
         {
             ReloadGestures();
@@ -189,287 +218,115 @@ public class GestureRecognizer : MonoBehaviour
             rightCal.SetDebug();
         }
 
-        if (shouldSave)
+        if (currentGesture == null) { return; }
+
+        // try to recognize the current gesture
+        Variant variant = Recognize();
+
+        // is gesture of the same type
+        if (variant == defaultVariant)
         {
-            shouldSave = false;
-            SaveAsGesture();
+            AbortCurrentGesture();
             return;
         }
 
-        if (SavedGestures == null) { return; }
+        // gesture usable
+        // set gesture index
+        tpProv.UpdateAndTryTeleport(variant.index);
 
-        // abort if the teleport method is in an error state
         if (tpProv.GetCurrentTeleporterState() == TransporterState.aborted)
         {
-            QuestDebug.Instance.Log("abort to sync", true);
             AbortCurrentGesture();
         }
-
-        // try to recognize the current gesture
-        Gesture gesture = Recognize();
-
-        if (!tpProv.IsMethodSet() && gesture.type != defaultGesture.type)
-        {
-            // select method
-            tpProv.SelectMethod(gesture.type);
-
-            // setup tracking information for the teleporters
-            var info = new TrackingInfo(CenterEye, rightCal, leftCal, fingerBones, gesture.ignoreLeft ? Hand.right : Hand.left);
-            tpProv.InitTeleport(info);
-        }
-
-        // gesture usable
-        // is gesture of the same type
-        if (previousGestureDetected.type == gesture.type)
-        {
-            // set gesture index
-            bool teleportExecuted = tpProv.UpdateAndTryTeleport(gesture.gestureIndex);
-
-            // reset to first method after teleport
-            if (teleportExecuted)
-            {
-                QuestDebug.Instance.Log("teleport confirmed", true);
-                // previousGestureDetected = SavedGestures.Find((g) => g.type == gesture.type && g.gestureIndex == 0);
-                // previousGestureDetected.time = timeDelay;
-                // gesture.time = 0f;
-                // return;
-            }
-
-            if (tpProv.GetCurrentTeleporterState() == TransporterState.aborted)
-            {
-                AbortCurrentGesture();
-                return;
-            }
-        }
-        else // gesture of different type
-        {
-            QuestDebug.Instance.Log("found " + gesture.name + " of type " + gesture.type, true);
-
-            AbortCurrentGesture();
-
-            // reset all gesture times
-            defaultGesture.time = 0f;
-            SavedGestures.ForEach(gesture => gesture.time = 0f);
-            gesture.time = timeDelay;
-
-            // select method
-            tpProv.SelectMethod(gesture.type);
-
-            // setup tracking information for the teleporters
-            var info = new TrackingInfo(CenterEye, rightCal, leftCal, fingerBones, gesture.ignoreLeft ? Hand.right : Hand.left);
-            tpProv.InitTeleport(info);
-        }
-        previousGestureDetected = gesture;
+        previousVariantDetected = variant;
     }
 
-    private SortedList<string, Bone> GetBones(SortedList<string, Bone> list, OVRSkeleton hand, HandCalibrator calibrator, Hand side)
-    {
-        bool isLeft = side == Hand.left;
-        foreach (var bone in hand.Bones)
-        {
-            var b = new Bone(bone, calibrator, isLeft);
-            list.Add(b.ToID(), b);
-        }
-
-        return list;
-    }
     public void AbortCurrentGesture(bool soft = false)
     {
         if (!soft)
         {
-            previousGestureDetected.time = 0;
+            previousVariantDetected.time = 0;
         }
-        if (previousGestureDetected.type == GestureType.Default) { return; }
+        if (previousVariantDetected == defaultVariant) { return; }
 
         tpProv.AbortTeleport();
-        previousGestureDetected = defaultGesture;
+        previousVariantDetected = defaultVariant;
+        SetAllowedType(currentGesture.type);
     }
 
-    private void SaveAsGesture()
+    public void SetAllowedType(GestureType type)
     {
-        Gesture g = new Gesture("new gesture");
-        List<Bone> data = new List<Bone>();
-        foreach (KeyValuePair<string, Bone> bone in fingerBones)
-        {
-            data.Add(bone.Value.Save());
-        }
+        Assert.IsNotNull(savedGestures);
+        tpProv.SelectMethod(type);
+        var value = savedGestures.Find(g => g.type == type);
+        Assert.IsNotNull(value);
+        // setup tracking information for the teleporters
+        var info = new TrackingInfo(CenterEye, rightCal, leftCal, fingerBones, value.ignoreLeft ? Hand.right : Hand.left);
+        tpProv.InitTeleport(info);
 
-        g.fingerData = data;
-
-        g.handPosLeft = GetPalmNormal(GetFingers(Hand.left));
-        g.handPosRight = GetPalmNormal(GetFingers(Hand.right));
-        SavedGestures.Add(g);
-
-        StartCoroutine(network.Post(g.ToJson()));
-        QuestDebug.Instance.Log("new gesture saved", true);
-        ReloadGestures();
+        currentGesture = value;
     }
 
-    private void ReloadGestures()
+    private Variant Recognize()
     {
-        StartCoroutine(network.GetGestures(this));
-        QuestDebug.Instance.Log("reloaded", true);
-    }
-
-    private void MessageReceived(object sender, MessageEventArgs e)
-    {
-        Debug.Log("message received");
-        Debug.Log(e);
-        shouldSave = true;
-    }
-
-    private Gesture Recognize()
-    {
-        float minSumDistances = Mathf.Infinity;
-        Gesture bestMatch = defaultGesture;
-
         if (disabled)
         {
-            return bestMatch;
+            return defaultVariant;
         }
 
-        // TODO: remove
-        if (forceGesture != null && Application.isEditor)
+        var baseDistance = GestureHelper.CalculateOptionError(fingerBones, leftCal, rightCal, currentGesture.baseJoints.ToArray());
+        QuestDebug.Instance.Log("dist: " + baseDistance / currentGesture.baseJoints.Count);
+        if (baseDistance / currentGesture.baseJoints.Count > baseThreshold)
         {
-            var gest = SavedGestures.Find((g) =>
-            {
-                return forceGesture.name.Equals(g.name);
-            });
-            if (gest != null) return gest;
+            return defaultVariant;
         }
 
-        // filter by type if only one type is allowed
-        var filtered = SavedGestures.FindAll((g) =>
+        // detect what variant is shown
+        Variant bestMatch = defaultVariant;
+        float minDist = Mathf.Infinity;
+        foreach (var variant in currentGesture.variants)
         {
-            bool couldBeNext = g.type == previousGestureDetected.type || g.gestureIndex == 0;
-            bool allowed = _allowedType == null || g.type == _allowedType;
-            return couldBeNext && allowed;
-        });
-
-        var dict = new Dictionary<int, Tuple<float, int>>();
-        // detect what gesture is shown
-        foreach (var gesture in filtered)
-        {
-            // bool sameTypeDifferentIndex = previousGestureDetected.type == gesture.type && previousGestureDetected.gestureIndex != gesture.gestureIndex;
-            // float maxFingerDist = sameTypeDifferentIndex ? gestureThreshold * 1.5f : gestureThreshold;
-            float dist = DistanceBetweenGestures(gesture, gestureThreshold);
+            float dist = GetBestOptionDistance(variant);
             bool validResult = dist > 0 && dist < Mathf.Infinity;
-            if (validResult)
+            if (validResult && minDist > dist)
             {
-                if (!dict.ContainsKey(gesture.gestureIndex))
-                {
-                    dict.Add(gesture.gestureIndex, new Tuple<float, int>(dist, 1));
-                }
-                else
-                {
-                    var val = dict[gesture.gestureIndex];
-                    dict[gesture.gestureIndex] = new Tuple<float, int>(val.Item1 + dist, val.Item2 + 1);
-                }
-            }
-
-        }
-
-        foreach (KeyValuePair<int, Tuple<float, int>> entry in dict)
-        {
-            float dist = entry.Value.Item1 / entry.Value.Item2;
-            if (dist < minSumDistances)
-            {
-                minSumDistances = dist;
-                bestMatch = filtered.Find((g) => g.gestureIndex == entry.Key);
+                minDist = dist;
+                bestMatch = variant;
             }
         }
 
-        QuestDebug.Instance.Log("detected: " + bestMatch.name);
-        if (bestMatch.type == previousGestureDetected.type)
-        {
-            QuestDebug.Instance.Log("same type");
-            return bestMatch;
-        }
+        QuestDebug.Instance.Log("detected: " + bestMatch.index);
 
         // set time delay
         bestMatch.time += Time.deltaTime;
 
         // reduce time delay after default gesture 
-        bool isSameType = previousGestureDetected.type != bestMatch.type;
-        bool isDefault = bestMatch == defaultGesture;
+        bool isSameType = defaultVariant.index == bestMatch.index;
+        bool isDefault = bestMatch == defaultVariant;
         float delay = isSameType ? 0 : isDefault ? timeDelay / 2 : timeDelay;
-        if (bestMatch.time < timeDelay)
+        if (bestMatch.time < delay)
         {
             // gesture still needs time
-            return previousGestureDetected;
+            return previousVariantDetected;
         }
 
-        QuestDebug.Instance.Log("first recognize");
         return bestMatch;
     }
 
-    private Bone[] GetFingers(Hand hand)
+    private float GetBestOptionDistance(Variant variant)
     {
-        if (Application.isEditor)
+        float bestDistance = float.PositiveInfinity;
+        for (int v = 0; v < variant.options.Count; v++)
         {
-            var b = new Bone(new OVRBone(OVRSkeleton.BoneId.Hand_Start, 0, transform), leftCal, true);
-            return new Bone[] { b, b, b };
+            var option = variant.options[v];
+
+            float sumDistances = GestureHelper.CalculateOptionError(fingerBones, leftCal, rightCal, option.joints);
+            if (sumDistances < bestDistance)
+            {
+                bestDistance = sumDistances;
+            }
         }
-
-        string key = hand == Hand.left ? "left" : "right";
-        return new Bone[]{
-            fingerBones["0-" + key],
-            fingerBones["6-" + key],
-            fingerBones["16-" + key]
-        };
-    }
-
-    private Vector3 GetPalmNormal(params Bone[] points)
-    {
-        return new Plane(
-            points[0].GetTransform().position,
-            points[1].GetTransform().position,
-            points[2].GetTransform().position
-        ).normal;
-    }
-
-    private float DistanceBetweenGestures(Gesture gesture, float maxFingerDist)
-    {
-        float sumDistances = 0;
-        for (int i = 0; i < fingerBones.Count; i++)
-        {
-            var storedFinger = gesture.fingerData[i];
-            var finger = fingerBones[storedFinger.ToID()];
-            Assert.IsNotNull(finger);
-
-            // is finger ignored
-            if ((gesture.ignoreLeft && finger.isLeftHand) || (gesture.ignoreRight && !finger.isLeftHand))
-            {
-                sumDistances += ignoredFingerPenalty;
-                continue;
-            }
-
-            HandCalibrator cal = finger.isLeftHand ? leftCal : rightCal;
-            var hand = cal.hand;
-            Vector3 currentData = finger.GetRelativePosition();
-            cal.WeightDict.TryGetValue(storedFinger.id, out float weight);
-            if (gesture.type == GestureType.TriangleGesture)
-            {
-                weight += 0.1f;
-            }
-            var point = storedFinger.position * cal.AverageSize;
-            var maxDist = weight * maxFingerDist;
-            cal.DebugPosition(hand.transform.TransformPoint(point), Color.green, maxDist);
-            float distance = Vector3.Distance(currentData, point);
-            if (distance > maxDist)
-            {
-                gesture.time = 0f;
-                QuestDebug.Instance.Log("--- abort gesture: " + gesture.name);
-                QuestDebug.Instance.Log("distance above threshold (max " + weight * maxFingerDist + ") :" + distance + " for finger " + storedFinger.id + (storedFinger.isLeftHand ? " (left)" : " (right)"));
-                return Mathf.Infinity;
-            }
-
-            sumDistances += distance;
-        }
-
-
-        QuestDebug.Instance.Log("gesture: " + gesture.name + " dist: " + sumDistances);
-        return sumDistances;
+        return bestDistance;
     }
 }
 

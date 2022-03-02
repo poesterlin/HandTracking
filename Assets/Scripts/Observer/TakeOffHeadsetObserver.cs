@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class TakeOffHeadsetObserver : StudyObserver
+public class TakeOffHeadsetObserver : MonoBehaviour, IStudyObserver
 {
-    public override GestureType GetCurrentGesture()
+    public GestureType GetCurrentGesture()
     {
         return GestureType.Default;
+    }
+
+    public void SetOrder(GestureType[] order)
+    {
     }
 }
