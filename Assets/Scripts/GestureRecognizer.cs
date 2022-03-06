@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using WebSocketSharp;
 using UnityEngine.Assertions;
 using System.Linq;
 using static OVRSkeleton;

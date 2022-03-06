@@ -17,6 +17,11 @@ public class GestureHelper
 
     public static float CalculateOptionError(SortedList<string, Bone> fingerBones, HandCalibrator leftCal, HandCalibrator rightCal, Bone[] joints)
     {
+        if (Application.isEditor)
+        {
+            return 0.1f;
+        }
+
         float error = 0;
         for (int i = 0; i < joints.Length; i++)
         {

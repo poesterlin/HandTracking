@@ -52,7 +52,7 @@ public class HandCalibrator : MonoBehaviour
 
     public bool IsTrackedWell()
     {
-        return hand.IsTracked && hand.IsDataHighConfidence;
+        return Application.isEditor || (hand.IsTracked && hand.IsDataHighConfidence);
     }
 
     public void SetDebug()

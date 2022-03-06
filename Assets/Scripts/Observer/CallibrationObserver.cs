@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using WebSocketSharp;
 
 public class CallibrationObserver : GestureTarget, IStudyObserver
 {
@@ -20,11 +21,28 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
     public UnityEvent<int> OnIndexChange = new UnityEvent<int>();
     public Text textEl;
 
-    public float delay = 5f;
+    public Animator LeftHand;
+    public Animator RightHand;
+    private WebSocket ws;
+    private bool shouldSave = false;
+    private float time = 0;
 
     public override void Start()
     {
         base.Start();
+
+        ws = new WebSocket("wss://vr.oesterlin.dev:9004");
+        ws.OnOpen += (object sender, EventArgs e) => QuestDebug.Instance.Log("socket opended", true);
+        ws.OnMessage += MessageReceived;
+        ws.OnClose += (object sender, CloseEventArgs e) => QuestDebug.Instance.Log("socket closing: " + e.Reason + "(" + e.Code + ")", true);
+        ws.OnError += (object sender, ErrorEventArgs e) =>
+        {
+            QuestDebug.Instance.Log("socket error: " + e.Message, true);
+            QuestDebug.Instance.Log(e.Exception.ToString(), true);
+        };
+        ws.Connect();
+        Debug.Log(ws.Url);
+
         fingerBones = new SortedList<string, Bone>();
         GestureHelper.InputBones(fingerBones, rightCal.skeleton, rightCal, Hand.right);
         GestureHelper.InputBones(fingerBones, leftCal.skeleton, leftCal, Hand.left);
@@ -34,40 +52,59 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
         OnLoaded.AddListener(() =>
         {
             Assert.IsTrue(savedGestures.Count > 0);
-            currentGesture = savedGestures[0];
-            QuestDebug.Instance.Log("set gesture to: " + currentGesture.name, true);
+
+            var order = new GestureType[1];
+            order[0] = savedGestures[0].type;
+            SetOrder(order);
             QuestDebug.Instance.Log("base joints: " + currentGesture.baseJoints.Count, true);
         });
     }
 
+    private void MessageReceived(object sender, MessageEventArgs e)
+    {
+        shouldSave = true;
+    }
+
     void Update()
     {
-        if (currentGesture == null || currentGesture.baseJoints.Count == 0)
+        var parent = RightHand.transform.parent.transform;
+        parent.Rotate(new Vector3(0, 0.1f, 0));
+
+        LeftHand.transform.position = parent.TransformPoint(new Vector3(0.55f, -0.03f, 0));
+
+        if (currentGesture == null)
         {
             return;
         }
+        time += Time.deltaTime;
 
-        if (!leftCal.IsTrackedWell() || !rightCal.IsTrackedWell())
-        {
-            return;
-        }
-
-        delay = Math.Max(0, delay - Time.deltaTime);
-        textEl.text = currentGesture.name + ": " + (index == 0 ? "target " : "confirm ") + (int)delay;
-        if (delay > 0)
+        if (currentGesture.baseJoints.Count == 0 || !leftCal.IsTrackedWell() || !rightCal.IsTrackedWell())
         {
             return;
         }
 
         var baseDist = GestureHelper.CalculateOptionError(fingerBones, leftCal, rightCal, currentGesture.baseJoints.ToArray());
         var averageDist = baseDist / currentGesture.baseJoints.Count;
-        QuestDebug.Instance.Log(averageDist + "", true);
-        if (averageDist < baseThreshold)
+        if (shouldSave && averageDist < baseThreshold)
         {
+            shouldSave = false;
             SaveOption();
-            index = (index + 1) % 2;
+
+            index += 1;
+            if (index == 2)
+            {
+                index = 0;
+                var order = new GestureType[1];
+                order[0] = (GestureType)(((int)currentGesture.type % 3) + 1);
+                SetOrder(order);
+            }
+            QuestDebug.Instance.Log("set index to: " + index, true);
             OnIndexChange.Invoke(index);
-            delay = 3f;
+            SetAnimationType();
+        }
+        else
+        {
+            SetAnimationType(false);
         }
 
         // var bones = fingerBones.Select((f) => f.Value.Save()).ToArray();
@@ -89,10 +126,55 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
         //     snapshots = new List<JointCollection>();
         //     delay = 5f;
         // }
+
+        // var info = LeftHand.GetCurrentAnimatorStateInfo(0);
+        // RightHand.Play(info.fullPathHash, 0, info.normalizedTime);
+        // RightHand.SetLayerWeight(0, );
+    }
+
+    private void SetAnimationType(bool changed = true)
+    {
+        var clipInfo = RightHand.GetCurrentAnimatorClipInfo(0);
+        var info = RightHand.GetCurrentAnimatorStateInfo(0);
+
+        if (clipInfo.Length == 0) { return; }
+
+        bool init = info.length > time;
+        bool isAtStart = (info.normalizedTime % info.length) < 0.1f && !init;
+        bool isAtEnd = !isAtStart && info.length - (info.normalizedTime % info.length) < 0.1;
+        bool enableLeft = currentGesture.type == GestureType.TriangleGesture;
+
+        if ((index == 0 && isAtStart) || (index == 1 && isAtEnd))
+        {
+            RightHand.enabled = init;
+            LeftHand.enabled = init;
+            return;
+        }
+
+        if (changed)
+        {
+            // QuestDebug.Instance.Log("init: " + init + " isAtStart: " + isAtStart + ", isAtEnd: " + isAtEnd + " norm time: " + info.normalizedTime + " len: " + info.length, true);
+            LeftHand.gameObject.SetActive(enableLeft);
+            RightHand.enabled = true;
+            LeftHand.enabled = enableLeft;
+            RightHand.SetInteger("state", (int)currentGesture.type);
+            LeftHand.SetInteger("state", (int)currentGesture.type);
+
+            var anim = "Base Layer." + currentGesture.name;
+            if (isAtEnd || init)
+            {
+                RightHand.Play(anim, 0, 0);
+                LeftHand.Play(anim, 0, 0);
+            }
+        }
     }
 
     private void SaveOption()
     {
+        if (Application.isEditor)
+        {
+            return;
+        }
         QuestDebug.Instance.Log("important joints: " + string.Join(", ", currentGesture.importantJoints.Select(s => s.ToID())), true);
         JointCollection col = new JointCollection(new Bone[currentGesture.importantJoints.Length]);
         for (int i = 0; i < currentGesture.importantJoints.Length; i++)
@@ -220,15 +302,16 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
 
     public void SetOrder(GestureType[] order)
     {
-        if (order.Length == 0)
+        if (order.Length == 0 || order[0] == GestureType.Default)
         {
             return;
         }
         currentGesture = savedGestures.Find(g => g.type == order[0]);
-        Assert.IsNotNull(currentGesture);
+        time = 0;
+        SetAnimationType();
+        Assert.IsNotNull(currentGesture, string.Join(", ", savedGestures.Select(s => s.type)) + " ==> " + order[0]);
         QuestDebug.Instance.Log("set gesture to: " + currentGesture.name, true);
         OnTypeChange.Invoke(currentGesture.type);
-        delay = 5f;
     }
 
     public GestureType GetCurrentGesture()
@@ -241,3 +324,4 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
         return currentGesture.type;
     }
 }
+
