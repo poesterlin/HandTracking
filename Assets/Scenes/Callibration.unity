@@ -2443,6 +2443,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   savedGestures: []
+  setup: {fileID: 2123747567}
   index: 0
   currentGesture:
     name: Index
@@ -2462,7 +2463,6 @@ MonoBehaviour:
   leftCal: {fileID: 481306087}
   rightCal: {fileID: 646032758}
   queueSize: 100
-  baseThreshold: 0.32
   OnTypeChange:
     m_PersistentCalls:
       m_Calls:
@@ -2663,7 +2663,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2123747566}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea7b4ac3f606298449cae6aa0c356e46, type: 3}
   m_Name: 
@@ -2671,6 +2671,11 @@ MonoBehaviour:
   productionServer: https://vr.oesterlin.dev
   devServer: http://192.168.0.194:3000
   productionSettings: 1
+  SettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  settings:
+    threshold: 0.012
 --- !u!4 &2123747568
 Transform:
   m_ObjectHideFlags: 0

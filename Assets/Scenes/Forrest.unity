@@ -19955,7 +19955,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 952977548}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea7b4ac3f606298449cae6aa0c356e46, type: 3}
   m_Name: 
@@ -19963,6 +19963,11 @@ MonoBehaviour:
   productionServer: https://vr.oesterlin.dev
   devServer: http://192.168.0.194:3000
   productionSettings: 1
+  SettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  settings:
+    threshold: 0.012
 --- !u!4 &952977550
 Transform:
   m_ObjectHideFlags: 0
@@ -32674,6 +32679,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2852320195602154279, guid: 938010ae41a311140907d58bc6eaf5a9, type: 3}
+      propertyPath: setup
+      value: 
+      objectReference: {fileID: 952977549}
+    - target: {fileID: 2852320195602154279, guid: 938010ae41a311140907d58bc6eaf5a9, type: 3}
       propertyPath: tpProv
       value: 
       objectReference: {fileID: 574222617}
@@ -32695,7 +32704,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2852320195602154279, guid: 938010ae41a311140907d58bc6eaf5a9, type: 3}
       propertyPath: baseThreshold
-      value: 0.008
+      value: 0.012
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 938010ae41a311140907d58bc6eaf5a9, type: 3}

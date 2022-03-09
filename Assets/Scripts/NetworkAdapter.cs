@@ -99,6 +99,29 @@ public class NetworkAdapter
         }
     }
 
+    public IEnumerator GetSettings(Setup inst)
+    {
+        Assert.IsNotNull(ip);
+        while (true)
+        {
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/stats/settings"))
+            {
+                // Request and wait for the desired page.
+                yield return webRequest.SendWebRequest();
+
+                if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+                {
+                    QuestDebug.Instance.Log(webRequest.error, true);
+                }
+
+                Debug.Log(webRequest.downloadHandler.text);
+                SettingsDto settings = JsonUtility.FromJson<SettingsDto>(webRequest.downloadHandler.text);
+                inst.SetSettings(settings);
+            }
+            yield return new WaitForSeconds(1);
+        }
+    }
+
     public IEnumerator UpdateForceGesture(GestureRecognizer inst)
     {
         while (true)

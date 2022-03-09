@@ -21,7 +21,7 @@ public class HandsDisplay : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isSetup && calibrator.IsTrackedWell())
+        if (!isSetup || !calibrator.IsTrackedWell())
         {
             return;
         }

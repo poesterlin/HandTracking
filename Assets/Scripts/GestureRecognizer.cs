@@ -183,14 +183,15 @@ public class GestureTarget : MonoBehaviour
 
 public class GestureRecognizer : GestureTarget
 {
+    public Setup setup;
     public HandCalibrator leftCal;
     public HandCalibrator rightCal;
     public Camera CenterEye;
     public float timeDelay = 0.3f;
     public Gesture forceGesture;
-    public float baseThreshold = 2f;
     public TeleportProvider tpProv;
     public bool disabled;
+    private float baseThreshold = 2f;
     private SortedList<string, Bone> fingerBones;
     private static Variant defaultVariant = new Variant();
     private Variant previousVariantDetected = defaultVariant;
@@ -205,7 +206,13 @@ public class GestureRecognizer : GestureTarget
 
         ReloadGestures();
         tpProv.OnAbort.AddListener(() => AbortCurrentGesture());
+        baseThreshold = PlayerPrefs.GetFloat("threshold");
 
+        Assert.IsNotNull(setup);
+        setup.SettingsChanged.AddListener((SettingsDto s) =>
+        {
+            baseThreshold = s.threshold;
+        });
     }
 
     private void Update()
@@ -255,10 +262,17 @@ public class GestureRecognizer : GestureTarget
 
     public void SetAllowedType(GestureType type)
     {
-        Assert.IsNotNull(savedGestures);
+        if (savedGestures == null)
+        {
+            return;
+        }
         tpProv.SelectMethod(type);
         var value = savedGestures.Find(g => g.type == type);
-        Assert.IsNotNull(value);
+        if (value == null)
+        {
+            return;
+        }
+
         // setup tracking information for the teleporters
         var info = new TrackingInfo(CenterEye, rightCal, leftCal, fingerBones, value.ignoreLeft ? Hand.right : Hand.left);
         tpProv.InitTeleport(info);

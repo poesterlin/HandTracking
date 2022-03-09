@@ -9,6 +9,7 @@ using WebSocketSharp;
 
 public class CallibrationObserver : GestureTarget, IStudyObserver
 {
+    public Setup setup;
     public int index = 0;
     public Gesture currentGesture;
     public HandCalibrator leftCal;
@@ -16,7 +17,6 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
     private SortedList<string, Bone> fingerBones;
     private List<JointCollection> snapshots = new List<JointCollection>();
     public int queueSize = 3;
-    public float baseThreshold = 2f;
     public UnityEvent<GestureType> OnTypeChange = new UnityEvent<GestureType>();
     public UnityEvent<int> OnIndexChange = new UnityEvent<int>();
     public Text textEl;
@@ -25,6 +25,7 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
     public Animator RightHand;
     private WebSocket ws;
     private bool shouldSave = false;
+    private float baseThreshold;
     private float time = 0;
 
     public override void Start()
@@ -58,6 +59,12 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
             SetOrder(order);
             QuestDebug.Instance.Log("base joints: " + currentGesture.baseJoints.Count, true);
         });
+
+        baseThreshold = PlayerPrefs.GetFloat("threshold");
+        setup.SettingsChanged.AddListener((SettingsDto s) =>
+        {
+            baseThreshold = s.threshold;
+        });
     }
 
     private void MessageReceived(object sender, MessageEventArgs e)
@@ -85,6 +92,8 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
 
         var baseDist = GestureHelper.CalculateOptionError(fingerBones, leftCal, rightCal, currentGesture.baseJoints.ToArray());
         var averageDist = baseDist / currentGesture.baseJoints.Count;
+        StartCoroutine(network.Set("/stats/threshold", "value", averageDist));
+
         if (shouldSave && averageDist < baseThreshold)
         {
             shouldSave = false;
