@@ -1,9 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-public class AccuracyStudyObserver : MonoBehaviour, IStudyObserver 
+public class AccuracyStudyObserver : MonoBehaviour, IStudyObserver
 {
 
     public TeleportProvider teleportProvider;
@@ -27,18 +29,37 @@ public class AccuracyStudyObserver : MonoBehaviour, IStudyObserver
     private GameObject[] targetObj;
     private int targetIdx = -1;
 
+    private bool started = false;
+    private List<TeleportRecord> records = new List<TeleportRecord>();
+
+    void Update()
+    {
+        if (started && records.Count > 0)
+        {
+            records.Last().delayToNext += Time.deltaTime;
+        }
+    }
+
+    void AddRecord(Vector3 newPos)
+    {
+        if (records.Count > 0)
+        {
+            var prev = records.Last();
+            prev.distance = Vector3.Distance(prev.position, newPos);
+            SendStats();
+        }
+        records.Add(new TeleportRecord(typeArray[state], newPos, obstacleNr));
+    }
+
     void Start()
     {
         network = new NetworkAdapter();
 
-        teleportProvider.OnTeleport.AddListener(CheckCollision);
-        startPos = player.transform.position;
         recognizer.OnLoaded.AddListener(() =>
       {
           StartCoroutine(network.GetOrder(this));
       });
         MakeTargets();
-        SelectNextTarget();
     }
 
     void MakeObstacles()
@@ -80,6 +101,10 @@ public class AccuracyStudyObserver : MonoBehaviour, IStudyObserver
 
     void CheckCollision(Vector3 newPos)
     {
+        if (targetObj == null || targetObj.Length < (targetIdx % targetObj.Length) || targetObj[targetIdx % targetObj.Length] == null)
+        {
+            return;
+        }
         var target = targetObj[targetIdx % targetObj.Length];
         var dist = Vector3.Distance(target.transform.position, newPos);
         var t = target.GetComponent<Target>();
@@ -92,14 +117,12 @@ public class AccuracyStudyObserver : MonoBehaviour, IStudyObserver
             t.OnLostCollision();
         }
 
-
-
         if (obstacles == null) { return; }
 
         for (int i = 0; i < obstacles.Length; i++)
         {
             Assert.IsNotNull(obstacles[i]);
-            if (Vector3.Distance(obstacles[i].transform.position, newPos) < 0.4f)
+            if (Vector3.Distance(Vector3.Scale(obstacles[i].transform.position, new Vector3(1f, 0f, 1f)), newPos) < 0.4f)
             {
                 StartCoroutine(network.Set("/stats/collision", "state", state, "pos", obstacles[i].transform.position));
             }
@@ -149,5 +172,22 @@ public class AccuracyStudyObserver : MonoBehaviour, IStudyObserver
         OnStateChange.Invoke(typeArray[state]);
         recognizer.SetAllowedType(typeArray[state]);
         recognizer.AbortCurrentGesture();
+    }
+
+    public void StartTest()
+    {
+        teleportProvider.OnTeleport.AddListener(CheckCollision);
+        teleportProvider.OnTeleport.AddListener(AddRecord);
+        SelectNextTarget();
+
+        startPos = player.transform.position;
+        AddRecord(startPos);
+        started = true;
+    }
+
+    void SendStats()
+    {
+        var json = JsonUtility.ToJson(records.Last());
+        StartCoroutine(network.Set("/stats/teleportRecord", "teleport", json));
     }
 }

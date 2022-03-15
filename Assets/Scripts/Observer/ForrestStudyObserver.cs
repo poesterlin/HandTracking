@@ -14,11 +14,15 @@ public class TeleportRecord
     public DateTime recorded = new DateTime();
     public GestureType type;
     public Vector3 position;
+    public string scene;
+    public int destination;
 
-    public TeleportRecord(GestureType type, Vector3 pos)
+    public TeleportRecord(GestureType type, Vector3 pos, int destination = -1)
     {
         this.type = type;
-        position = pos;
+        position = new Vector3(pos.x, pos.z, 0f);
+        scene = SceneManager.GetActiveScene().name;
+        this.destination = destination;
     }
 }
 
@@ -34,7 +38,7 @@ public class CounterBallanceRecord
     }
 }
 
-public class ForrestStudyObserver : MonoBehaviour, IStudyObserver 
+public class ForrestStudyObserver : MonoBehaviour, IStudyObserver
 {
     public TeleportProvider teleportProvider;
     public GestureRecognizer recognizer;

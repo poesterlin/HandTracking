@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Networking.PlayerConnection;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Events;
@@ -32,16 +33,7 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
     {
         base.Start();
 
-        ws = new WebSocket("wss://vr.oesterlin.dev:9004");
-        ws.OnOpen += (object sender, EventArgs e) => QuestDebug.Instance.Log("socket opended", true);
-        ws.OnMessage += MessageReceived;
-        ws.OnClose += (object sender, CloseEventArgs e) => QuestDebug.Instance.Log("socket closing: " + e.Reason + "(" + e.Code + ")", true);
-        ws.OnError += (object sender, ErrorEventArgs e) =>
-        {
-            QuestDebug.Instance.Log("socket error: " + e.Message, true);
-            QuestDebug.Instance.Log(e.Exception.ToString(), true);
-        };
-        ws.Connect();
+        ws = ConnectWebsocket();
         Debug.Log(ws.Url);
 
         fingerBones = new SortedList<string, Bone>();
@@ -65,6 +57,30 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
         {
             baseThreshold = s.threshold;
         });
+    }
+
+    private WebSocket ConnectWebsocket()
+    {
+        var webSocket = new WebSocket("wss://vr.oesterlin.dev:9004");
+        webSocket.OnOpen += (object sender, EventArgs e) => QuestDebug.Instance.Log("socket opended", true);
+        webSocket.OnMessage += MessageReceived;
+
+        webSocket.OnClose += (object sender, CloseEventArgs e) =>
+        {
+            QuestDebug.Instance.Log("socket closing: " + e.Reason + "(" + e.Code + ")", true);
+            ws = ConnectWebsocket();
+        };
+
+        webSocket.OnError += (object sender, ErrorEventArgs e) =>
+         {
+             QuestDebug.Instance.Log("socket error: " + e.Message, true);
+             QuestDebug.Instance.Log(e.Exception.ToString(), true);
+             ws.Close();
+             ws = ConnectWebsocket();
+         };
+
+        webSocket.Connect();
+        return ws;
     }
 
     private void MessageReceived(object sender, MessageEventArgs e)
