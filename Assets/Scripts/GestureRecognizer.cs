@@ -192,6 +192,7 @@ public class GestureRecognizer : GestureTarget
     public TeleportProvider tpProv;
     public bool disabled;
     private float baseThreshold = 2f;
+    private bool useAverageMethod;
     private SortedList<string, Bone> fingerBones;
     private static Variant defaultVariant = new Variant();
     private Variant previousVariantDetected = defaultVariant;
@@ -212,6 +213,7 @@ public class GestureRecognizer : GestureTarget
         setup.SettingsChanged.AddListener((SettingsDto s) =>
         {
             baseThreshold = s.threshold;
+            useAverageMethod = s.averageMethod;
         });
     }
 
@@ -329,15 +331,21 @@ public class GestureRecognizer : GestureTarget
     private float GetBestOptionDistance(Variant variant)
     {
         float bestDistance = float.PositiveInfinity;
+        float averageDist = 0;
         for (int v = 0; v < variant.options.Count; v++)
         {
             var option = variant.options[v];
 
             float sumDistances = GestureHelper.CalculateOptionError(fingerBones, leftCal, rightCal, option.joints);
+            averageDist += sumDistances;
             if (sumDistances < bestDistance)
             {
                 bestDistance = sumDistances;
             }
+        }
+        if (useAverageMethod)
+        {
+            return averageDist / variant.options.Count;
         }
         return bestDistance;
     }

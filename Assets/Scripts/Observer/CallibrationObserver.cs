@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Networking.PlayerConnection;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Events;
@@ -80,7 +79,7 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
          };
 
         webSocket.Connect();
-        return ws;
+        return webSocket;
     }
 
     private void MessageReceived(object sender, MessageEventArgs e)

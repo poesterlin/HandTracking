@@ -7,6 +7,7 @@ using UnityEngine.Events;
 public class SettingsDto
 {
     public float threshold;
+    public bool averageMethod;
 }
 
 [ExecuteAlways]

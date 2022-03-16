@@ -32,13 +32,12 @@ public class GestureHelper
             Assert.IsNotNull(finger);
 
             HandCalibrator cal = finger.isLeft ? leftCal : rightCal;
-            var hand = cal.hand;
 
             Vector3 currentData = finger.GetRelativePosition();
             cal.WeightDict.TryGetValue(storedFinger.boneId, out float weight);
 
             var point = storedFinger.position * cal.AverageSize;
-            // cal.DebugPosition(hand.transform.TransformPoint(point), Color.green, weight * 0.005f);
+            cal.DebugPosition(cal.hand.transform.TransformPoint(point), Color.green, weight * 0.005f);
             error += Vector3.Distance(currentData, point) / weight;
         }
 
