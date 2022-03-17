@@ -27,6 +27,8 @@ public class GestureList
 public class JointCollection
 {
 
+    public string _id;
+
     public JointCollection() { }
     public JointCollection(Bone[] joints)
     {
@@ -159,7 +161,10 @@ public class GestureTarget : MonoBehaviour
 {
     public UnityEvent OnLoaded = new UnityEvent();
     public List<Gesture> savedGestures;
+
+    public SortedList<string, bool> bestPredictingOptions = new SortedList<string, bool>();
     protected NetworkAdapter network;
+
 
     public virtual void Start()
     {
@@ -178,6 +183,7 @@ public class GestureTarget : MonoBehaviour
     protected void ReloadGestures()
     {
         StartCoroutine(network.GetGestures(this));
+        StartCoroutine(network.GetBestPredictingOptions(this));
     }
 }
 
@@ -192,11 +198,11 @@ public class GestureRecognizer : GestureTarget
     public TeleportProvider tpProv;
     public bool disabled;
     private float baseThreshold = 2f;
-    private bool useAverageMethod;
     private SortedList<string, Bone> fingerBones;
     private static Variant defaultVariant = new Variant();
     private Variant previousVariantDetected = defaultVariant;
     private Gesture currentGesture;
+    private SettingsDto s;
 
     public override void Start()
     {
@@ -213,7 +219,7 @@ public class GestureRecognizer : GestureTarget
         setup.SettingsChanged.AddListener((SettingsDto s) =>
         {
             baseThreshold = s.threshold;
-            useAverageMethod = s.averageMethod;
+            this.s = s;
         });
     }
 
@@ -332,10 +338,16 @@ public class GestureRecognizer : GestureTarget
     {
         float bestDistance = float.PositiveInfinity;
         float averageDist = 0;
+        int used = 0;
         for (int v = 0; v < variant.options.Count; v++)
         {
             var option = variant.options[v];
+            if (s.optimizeOptions && !bestPredictingOptions.ContainsKey(option._id) && bestPredictingOptions.Count >= 4)
+            {
+                continue;
+            }
 
+            used += 1;
             float sumDistances = GestureHelper.CalculateOptionError(fingerBones, leftCal, rightCal, option.joints);
             averageDist += sumDistances;
             if (sumDistances < bestDistance)
@@ -343,9 +355,9 @@ public class GestureRecognizer : GestureTarget
                 bestDistance = sumDistances;
             }
         }
-        if (useAverageMethod)
+        if (s.averageMethod)
         {
-            return averageDist / variant.options.Count;
+            return averageDist / used;
         }
         return bestDistance;
     }

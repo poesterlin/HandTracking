@@ -15,7 +15,6 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
     public HandCalibrator leftCal;
     public HandCalibrator rightCal;
     private SortedList<string, Bone> fingerBones;
-    private List<JointCollection> snapshots = new List<JointCollection>();
     public int queueSize = 3;
     public UnityEvent<GestureType> OnTypeChange = new UnityEvent<GestureType>();
     public UnityEvent<int> OnIndexChange = new UnityEvent<int>();
@@ -27,20 +26,19 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
     private bool shouldSave = false;
     private float baseThreshold;
     private float time = 0;
+    private List<Tuple<Tuple<GestureType, int>, JointCollection>> groundTruthSnapshots = new List<Tuple<Tuple<GestureType, int>, JointCollection>>();
+
 
     public override void Start()
     {
         base.Start();
-
         ws = ConnectWebsocket();
-        Debug.Log(ws.Url);
 
         fingerBones = new SortedList<string, Bone>();
         GestureHelper.InputBones(fingerBones, rightCal.skeleton, rightCal, Hand.right);
         GestureHelper.InputBones(fingerBones, leftCal.skeleton, leftCal, Hand.left);
+
         textEl.gameObject.SetActive(true);
-        leftCal.SetDebug();
-        rightCal.SetDebug();
         OnLoaded.AddListener(() =>
         {
             Assert.IsTrue(savedGestures.Count > 0);
@@ -100,7 +98,17 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
         }
         time += Time.deltaTime;
 
-        if (currentGesture.baseJoints.Count == 0 || !leftCal.IsTrackedWell() || !rightCal.IsTrackedWell())
+        if (currentGesture.baseJoints.Count == 0)
+        {
+            return;
+        }
+
+        if (!currentGesture.ignoreLeft && !leftCal.IsTrackedWell())
+        {
+            return;
+        }
+
+        if (!currentGesture.ignoreRight && !rightCal.IsTrackedWell())
         {
             return;
         }
@@ -118,6 +126,9 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
             if (index == 2)
             {
                 index = 0;
+                var list = string.Join(",", FindBestPredictingOptions());
+                StartCoroutine(network.Set("/gesture/optimize", "list", list));
+
                 var order = new GestureType[1];
                 order[0] = (GestureType)(((int)currentGesture.type % 3) + 1);
                 SetOrder(order);
@@ -129,6 +140,7 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
         else
         {
             SetAnimationType(false);
+            shouldSave = false;
         }
 
         // var bones = fingerBones.Select((f) => f.Value.Save()).ToArray();
@@ -154,6 +166,73 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
         // var info = LeftHand.GetCurrentAnimatorStateInfo(0);
         // RightHand.Play(info.fullPathHash, 0, info.normalizedTime);
         // RightHand.SetLayerWeight(0, );
+    }
+
+    private List<string> FindBestPredictingOptions()
+    {
+        var list1 = new List<string>();
+        var list2 = new List<string>();
+
+        foreach (var snap in groundTruthSnapshots)
+        {
+            var type = snap.Item1.Item1;
+            var idx = snap.Item1.Item2;
+            var gesture = savedGestures.Find(g => g.type == type);
+            Assert.IsNotNull(gesture);
+
+            var truthbones = new SortedList<string, Bone>();
+            foreach (var bone in snap.Item2.joints)
+            {
+                truthbones.Add(bone.ToID(), bone);
+            }
+
+            var lright = new List<Tuple<float, string>>();
+            var lwrong = new List<Tuple<float, string>>();
+
+            foreach (var option in gesture.variants[idx].options)
+            {
+                float sumDistances = GestureHelper.CalculateOptionError(truthbones, leftCal, rightCal, option.joints);
+                lright.Add(new Tuple<float, string>(sumDistances, option._id));
+            }
+
+            var otherVariant = gesture.variants.Find((v) => v.index != idx);
+            Assert.IsNotNull(otherVariant);
+
+            foreach (var option in otherVariant.options)
+            {
+                float sumDistances = GestureHelper.CalculateOptionError(truthbones, leftCal, rightCal, option.joints);
+                lwrong.Add(new Tuple<float, string>(sumDistances, option._id));
+            }
+
+            lright.Sort((v1, v2) => v1.Item1.CompareTo(v2.Item1));
+            lwrong.Sort((v1, v2) => v2.Item1.CompareTo(v1.Item1));
+
+            for (int i = 0; i < lright.Count / 2; i++)
+            {
+                list1.Add(lright[i].Item2);
+            }
+            for (int i = 0; i < lwrong.Count / 2; i++)
+            {
+                list2.Add(lwrong[i].Item2);
+            }
+        }
+
+        List<string> results = new List<string>();
+        for (int i = 0; i < list1.Count; i++)
+        {
+            string s = list2.Find((e) => e != null && e.Equals(list1[i]));
+            if (s == null || s.Length == 0)
+            {
+                results.Add(list1[i]);
+            }
+        }
+
+        if (results.Count < 6)
+        {
+            QuestDebug.Instance.Log("more training required!", true);
+        }
+
+        return results;
     }
 
     private void SetAnimationType(bool changed = true)
@@ -199,16 +278,17 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
         {
             return;
         }
-        QuestDebug.Instance.Log("important joints: " + string.Join(", ", currentGesture.importantJoints.Select(s => s.ToID())), true);
+        // QuestDebug.Instance.Log("important joints: " + string.Join(", ", currentGesture.importantJoints.Select(s => s.ToID())), true);
         JointCollection col = new JointCollection(new Bone[currentGesture.importantJoints.Length]);
         for (int i = 0; i < currentGesture.importantJoints.Length; i++)
         {
             var importantBone = currentGesture.importantJoints[i];
             var bone = fingerBones[importantBone.ToID()].Save();
             col.joints[i] = bone;
-            QuestDebug.Instance.Log(importantBone.boneId + ": " + bone.position.ToString(), true);
+            // QuestDebug.Instance.Log(importantBone.boneId + ": " + bone.position.ToString(), true);
             // bone.calibrator.DebugPosition(bone.Hand.transform.TransformPoint(bone.position), Color.green, 0.005f);
         }
+        groundTruthSnapshots.Add(new Tuple<Tuple<GestureType, int>, JointCollection>(new Tuple<GestureType, int>(currentGesture.type, index), col));
         var variant = currentGesture.variants.Find(v => v.index == index);
         Assert.IsNotNull(variant);
         LogDifferenceToExcistingOptions(variant.options, col);

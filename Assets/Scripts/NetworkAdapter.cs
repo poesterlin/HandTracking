@@ -114,9 +114,38 @@ public class NetworkAdapter
                     QuestDebug.Instance.Log(webRequest.error, true);
                 }
 
-                Debug.Log(webRequest.downloadHandler.text);
                 SettingsDto settings = JsonUtility.FromJson<SettingsDto>(webRequest.downloadHandler.text);
                 inst.SetSettings(settings);
+            }
+            yield return new WaitForSeconds(1);
+        }
+    }
+
+    public IEnumerator GetBestPredictingOptions(GestureTarget inst)
+    {
+        Assert.IsNotNull(ip);
+        while (true)
+        {
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(ip + "/gesture/optimize"))
+            {
+                // Request and wait for the desired page.
+                yield return webRequest.SendWebRequest();
+
+                if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+                {
+                    QuestDebug.Instance.Log(webRequest.error, true);
+                }
+
+                var list = webRequest.downloadHandler.text;
+                inst.bestPredictingOptions = new SortedList<string, bool>();
+                foreach (var id in list.Split(','))
+                {
+                    if (inst.bestPredictingOptions.ContainsKey(id))
+                    {
+                        continue;
+                    }
+                    inst.bestPredictingOptions.Add(id, true);
+                }
             }
             yield return new WaitForSeconds(1);
         }

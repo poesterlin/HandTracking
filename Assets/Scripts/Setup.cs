@@ -8,6 +8,7 @@ public class SettingsDto
 {
     public float threshold;
     public bool averageMethod;
+    public bool optimizeOptions;
 }
 
 [ExecuteAlways]
@@ -44,7 +45,7 @@ public class Setup : MonoBehaviour
 
     public void SetSettings(SettingsDto settings)
     {
-        Debug.Log("changing settings: " + settings.threshold);
+        // Debug.Log("changing settings: " + settings.threshold);
         this.settings = settings;
         SettingsChanged.Invoke(settings);
     }
