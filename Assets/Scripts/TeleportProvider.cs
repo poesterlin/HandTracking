@@ -204,7 +204,7 @@ public class TeleportProvider : MonoBehaviour
         if (IsMethodSet())
         {
             method.Init(track);
-            QuestDebug.Instance.Log("initiating teleport", true);
+            // QuestDebug.Instance.Log("initiating teleport", true);
         }
     }
 

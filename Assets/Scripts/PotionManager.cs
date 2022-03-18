@@ -24,12 +24,8 @@ public class PotionManager : MonoBehaviour
 
     public void CreateFlask(GestureType type)
     {
-        if (type == GestureType.Default)
+        if (type == GestureType.Default || flask != null)
         {
-            if (flask != null)
-            {
-                Destroy(flask);
-            }
             return;
         }
         flask = Instantiate(potionPrefab, transform.TransformPoint(positions[count]), Quaternion.identity, transform);

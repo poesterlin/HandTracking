@@ -106,10 +106,8 @@ public class ForrestStudyObserver : MonoBehaviour, IStudyObserver
     public void UpdateState()
     {
         teleportProvider.enabled = false;
-        Invoke("ResetPosition", 1.5f);
         if (state + 1 == typeArray.Length)
         {
-            SceneManager.LoadScene("TakeOffHeadset");
             return;
         }
         state += 1;

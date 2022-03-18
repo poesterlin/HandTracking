@@ -202,7 +202,7 @@ public class GestureRecognizer : GestureTarget
     private static Variant defaultVariant = new Variant();
     private Variant previousVariantDetected = defaultVariant;
     private Gesture currentGesture;
-    private SettingsDto s;
+    private SettingsDto settings;
 
     public override void Start()
     {
@@ -212,14 +212,18 @@ public class GestureRecognizer : GestureTarget
         GestureHelper.InputBones(fingerBones, leftCal.skeleton, leftCal, Hand.left);
 
         ReloadGestures();
-        tpProv.OnAbort.AddListener(() => AbortCurrentGesture());
+        tpProv.OnAbort.AddListener(() =>
+        {
+            StartCoroutine(network.Set("/stats/abort"));
+            AbortCurrentGesture();
+        });
         baseThreshold = PlayerPrefs.GetFloat("threshold");
 
         Assert.IsNotNull(setup);
         setup.SettingsChanged.AddListener((SettingsDto s) =>
         {
             baseThreshold = s.threshold;
-            this.s = s;
+            this.settings = s;
         });
     }
 
@@ -342,7 +346,7 @@ public class GestureRecognizer : GestureTarget
         for (int v = 0; v < variant.options.Count; v++)
         {
             var option = variant.options[v];
-            if (s.optimizeOptions && !bestPredictingOptions.ContainsKey(option._id) && bestPredictingOptions.Count >= 4)
+            if (settings.optimizeOptions && !bestPredictingOptions.ContainsKey(option._id) && bestPredictingOptions.Count >= 4)
             {
                 continue;
             }
@@ -355,7 +359,7 @@ public class GestureRecognizer : GestureTarget
                 bestDistance = sumDistances;
             }
         }
-        if (s.averageMethod)
+        if (settings.averageMethod)
         {
             return averageDist / used;
         }
