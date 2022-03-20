@@ -137,7 +137,7 @@ public abstract class Teleporter
         reticle.deactivate();
     }
 
-    internal void UpdateTarget(Vector3 newTarget, float smoothing = 0.1f)
+    internal void UpdateTarget(Vector3 newTarget, float smoothing = 0.08f)
     {
         if (target == Vector3.zero)
         {
@@ -173,6 +173,7 @@ public class TeleportProvider : MonoBehaviour
     private Teleporter method;
     public float distance;
     public double teleportDelay = 0.7;
+    public float playerHeight = 1.8f;
 
     public UnityEvent<Vector3> OnTeleport = new UnityEvent<Vector3>();
     public UnityEvent OnAbort = new UnityEvent();
@@ -236,7 +237,7 @@ public class TeleportProvider : MonoBehaviour
             method.WasTeleported();
 
             var offset = Vector3.Scale(Camera.transform.position - player.transform.position, new Vector3(1, 0, 1));
-            player.transform.position = new Vector3(target.x, character.height / 2.0f, target.z) - offset;
+            player.transform.position = new Vector3(target.x, playerHeight / 2.0f, target.z) - offset;
 
             lastTeleport = DateTime.Now;
             OnTeleport.Invoke(player.transform.position);

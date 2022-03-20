@@ -223,7 +223,8 @@ public class GestureRecognizer : GestureTarget
         setup.SettingsChanged.AddListener((SettingsDto s) =>
         {
             baseThreshold = s.threshold;
-            this.settings = s;
+            settings = s;
+            tpProv.playerHeight = s.playerHeight;
         });
     }
 

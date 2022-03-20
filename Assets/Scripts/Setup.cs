@@ -9,6 +9,7 @@ public class SettingsDto
     public float threshold;
     public bool averageMethod;
     public bool optimizeOptions;
+    public float playerHeight;
 }
 
 [ExecuteAlways]

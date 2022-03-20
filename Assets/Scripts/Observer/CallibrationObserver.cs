@@ -42,11 +42,7 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
         OnLoaded.AddListener(() =>
         {
             Assert.IsTrue(savedGestures.Count > 0);
-
-            var order = new GestureType[1];
-            order[0] = savedGestures[0].type;
-            SetOrder(order);
-            QuestDebug.Instance.Log("base joints: " + currentGesture.baseJoints.Count, true);
+            StartCoroutine(network.GetOrder(this));
         });
 
         baseThreshold = PlayerPrefs.GetFloat("threshold");
@@ -128,10 +124,6 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
                 index = 0;
                 var list = string.Join(",", FindBestPredictingOptions());
                 StartCoroutine(network.Set("/gesture/optimize", "list", list));
-
-                var order = new GestureType[1];
-                order[0] = (GestureType)(((int)currentGesture.type % 3) + 1);
-                SetOrder(order);
             }
             QuestDebug.Instance.Log("set index to: " + index, true);
             OnIndexChange.Invoke(index);
@@ -426,6 +418,27 @@ public class CallibrationObserver : GestureTarget, IStudyObserver
         }
 
         return currentGesture.type;
+    }
+    void OnApplicationFocus(bool hasFocus)
+    {
+        if (!hasFocus)
+        {
+            return;
+        }
+
+        QuestDebug.Instance.Log("has focus again", true);
+        ws = ConnectWebsocket();
+    }
+
+    void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus)
+        {
+            return;
+        }
+
+        QuestDebug.Instance.Log("woke up from pause", true);
+        ws = ConnectWebsocket();
     }
 }
 
